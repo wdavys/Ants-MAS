@@ -16,6 +16,7 @@ from mesa.visualization.modules import ChartModule
 from mesa.visualization.ModularVisualization import VisualizationElement, ModularServer
 
 from ant import Ant
+from canvas import ContinuousCanvas
 
 ########################
 ###### CONSTANS ########
