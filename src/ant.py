@@ -22,7 +22,7 @@ class Ant(Agent):
         sight_distance: float,
         colony: Colony,
         proba_cgt_angle=0.03,
-        ignore_steps_after_marker=2
+        ignore_steps_after_marker=2,
     ):
         super().__init__(unique_id, model)
         self.x = x
@@ -58,16 +58,16 @@ class Ant(Agent):
             if destination.y < y:
                 next_angle = -next_angle
             return self.next_pos(), next_angle, reached
-    
+
     def go_back_to_colony(self) -> Tuple:
         next_x, next_y, next_angle, reached = self.go_to(self.colony)
-        
+
         if reached:
             self.colony.food_picked += 1
             self.is_carrying = False
-        
+
         return next_x, next_y, next_angle
-    
+
     def look_for_food(self) -> Union[Food, None]:
         foods_at_sight = [
             food
@@ -75,10 +75,12 @@ class Ant(Agent):
             if euclidean(food, self) < self.sight_distance
         ]
         if foods_at_sight:
-            nearest_food = foods_at_sight[np.argmin([euclidean(self, food) for food in foods_at_sight])]
-            
+            nearest_food = foods_at_sight[
+                np.argmin([euclidean(self, food) for food in foods_at_sight])
+            ]
+
             return nearest_food
-    
+
     def look_for_food_marker(self) -> Union[Marker, None]:
         food_markers_at_sight = [
             marker
@@ -90,47 +92,58 @@ class Ant(Agent):
                 np.argmin([euclidean(self, marker) for marker in food_markers_at_sight])
             ]
             return nearest_food_marker
-    
+
     def step(self):
         if self.is_carrying:
             # The ant is carrying food, it wants to go to the colony
 
             next_x, next_y, next_angle = self.go_back_to_colony()
-        
+
         else:
             # The ant is looking for either food or markers
-            
-            if nearest_food :=self.look_for_food() is not None:
+
+            if nearest_food := self.look_for_food() is not None:
                 # The ant saw some food
 
                 next_x, next_y, next_angle, food_reached = self.go_to(nearest_food)
-                
+
                 # The ant can already leave a food marker
-                food_marker = Marker(x=self.x, y=self.y, purpose=MarkerPurpose.FOOD, directions=next_angle)
+                food_marker = Marker(
+                    x=self.x,
+                    y=self.y,
+                    purpose=MarkerPurpose.FOOD,
+                    directions=next_angle,
+                )
                 self.model.markers.append(food_marker)
                 self.ignore_markers_counts += self.ignore_steps_after_marker
-                
+
                 if food_reached:
                     # The ant reached food, it take one piece and now try to go back to the colony
-                    
+
                     nearest_food.get_one_piece()
                     self.is_carrying = True
-                
+
             else:
                 # The ant did not see any food
-                
-                if self.ignore_markers_counts == 0 & (nearest_food_marker := self.look_for_food_marker() is not None):
+
+                if self.ignore_markers_counts == 0 & (
+                    nearest_food_marker := self.look_for_food_marker() is not None
+                ):
                     # The ant is aware of markers and saw one
-                    
-                    next_x, next_y, next_angle, marker_reached = self.go_to(nearest_food_marker)
-                    
+
+                    next_x, next_y, next_angle, marker_reached = self.go_to(
+                        nearest_food_marker
+                    )
+
                     if marker_reached:
                         self.is_on_food_marker = True  # TODO a quoi ça sert ?
-                
+
                 else:
                     # The ant did not see any food nor markers, it explores the environement
-                    
-                    next_x, next_x = space.move(x=self.x, y=self.y, speed=self.speed, angle=self.angle)
+
+                    next_x, next_x = space.move(
+                        x=self.x, y=self.y, speed=self.speed, angle=self.angle
+                    )
                     next_angle = 2 * np.pi * random.random()
 
         # Update ant states
