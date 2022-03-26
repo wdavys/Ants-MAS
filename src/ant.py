@@ -38,8 +38,7 @@ class Ant(Agent):
         self.is_on_food_marker = False
 
     def next_pos(self):
-        next_x = self.x + self.speed * math.cos(self.angle)
-        next_y = self.y + self.speed * math.sin(self.angle)
+        next_x, next_y = move(self.x, self.y, self.speed, self.angle)
         return next_x, next_y
 
     def go_to(self, destination: Point):
