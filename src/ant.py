@@ -4,10 +4,9 @@ import numpy as np
 from typing import Tuple, Union
 from mesa import Agent, Model
 
-from .space import Point, euclidean, move
-from .marker import Marker, MarkerPurpose
-from .environnement import Colony, Food
-from src import space
+from space import Point, euclidean, move
+from marker import Marker, MarkerPurpose
+import space
 
 
 class Ant(Agent):
@@ -20,7 +19,8 @@ class Ant(Agent):
         speed: float,
         angle: float,
         sight_distance: float,
-        colony: Colony,
+        colony,
+        color: str,
         proba_cgt_angle=0.03,
         ignore_steps_after_marker=2,
     ):
@@ -68,7 +68,7 @@ class Ant(Agent):
 
         return next_x, next_y, next_angle
 
-    def look_for_food(self) -> Union[Food, None]:
+    def look_for_food(self):
         foods_at_sight = [
             food
             for food in self.model.foods

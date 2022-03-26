@@ -6,8 +6,8 @@ from mesa.batchrunner import BatchRunner
 from mesa.visualization.modules import ChartModule
 from mesa.visualization.ModularVisualization import ModularServer
 
-from .environnement import MinedZone
-from .canvas import ContinuousCanvas
+from environnement import Ground
+from canvas import ContinuousCanvas
 
 ########################
 ###### CONSTANS ########
@@ -273,40 +273,31 @@ PROBA_CHGT_ANGLE = 0.03
 
 
 def run_single_server():
-    chart = ChartModule(
-        [
-            {"Label": "Mines", "Color": "Orange"},
-            {"Label": "Danger markers", "Color": "Red"},
-            {"Label": "FOOD markers", "Color": "Green"},
-            {"Label": "Steps in quicksand", "Color": "Black"},
-        ],
-        data_collector_name="datacollector",
-    )
-    server = ModularServer(
-        MinedZone,
-        [ContinuousCanvas(), chart],
-        "Deminer robots",
-        {
-            "n_robots": mesa.visualization.ModularVisualization.UserSettableParameter(
-                "slider", "Number of robots", 7, 3, 15, 1
-            ),
-            "n_obstacles": mesa.visualization.ModularVisualization.UserSettableParameter(
-                "slider", "Number of obstacles", 5, 2, 10, 1
-            ),
-            "n_quicksand": mesa.visualization.ModularVisualization.UserSettableParameter(
-                "slider", "Number of quicksand", 5, 2, 10, 1
-            ),
-            "speed": mesa.visualization.ModularVisualization.UserSettableParameter(
-                "slider", "Robot speed", 15, 5, 40, 5
-            ),
-            "n_mines": mesa.visualization.ModularVisualization.UserSettableParameter(
-                "slider", "Number of mines", 15, 5, 30, 1
-            ),
-            "allow_danger_markers": True,
-            "allow_info_markers": True,
-            "allow_smart_angle_chgt": True,
-        },
-    )
+    chart = ChartModule([{"Label": "Foods",
+                          "Color": "Orange"},
+                         {"Label": "Danger markers",
+                          "Color": "Red"},
+                         {"Label": "FOOD markers",
+                          "Color": "Green"}
+                         ],
+                        data_collector_name='datacollector')
+
+    server = ModularServer(Ground,
+                           [ContinuousCanvas(),
+                            chart],
+                           "Ants colonies",
+                           {"n_colony": 2,
+                            "n_ants_per_colony": [10, 10],
+                            "color_colonies": ["#00C8FF", "#52FF2B"],
+                            "color_ants": ["#0000A6", "#008300"],
+                            "n_food": mesa.visualization.
+                            ModularVisualization.UserSettableParameter('slider', "Number of foods", 3, 1, 5, 1),
+                            "n_obstacles": mesa.visualization.
+                            ModularVisualization.UserSettableParameter('slider', "Number of obstacles", 5, 2, 10, 1),
+                            "speed": mesa.visualization.
+                            ModularVisualization.UserSettableParameter('slider', "Ant speed", 5, 5, 40, 5),
+                            "allow_danger_markers": True,
+                            "allow_info_markers": True})
     server.port = 8521
     server.launch()
 
@@ -314,16 +305,15 @@ def run_single_server():
 def run_batch():
 
     # ----- Analyse allow_smart_angle_chgt -----
-    fixed_params = {
-        "n_robots": 8,
-        "n_obstacles": 5,
-        "n_quicksand": 5,
-        "speed": 15,
-        "n_mines": 15,
-        "allow_danger_markers": True,
-        "allow_info_markers": True,
-    }
-    variable_params = {"allow_smart_angle_chgt": [False] * 50 + [True] * 50}
+    # fixed_params = {"n_colony":2,
+    #                 "n_obstacles":5,
+    #                 "n_quicksand":5,
+    #                 "speed": 15,
+    #                 "n_mines":15,
+    #                 "allow_danger_markers":True,
+    #                 "allow_info_markers":True}
+    # variable_params = {"allow_smart_angle_chgt":[False]*50 + [True]*50 }
+
 
     # ----- Analyse allow_danger_markers -----
     # fixed_params = {"n_robots":8,
@@ -335,53 +325,27 @@ def run_batch():
     #                 "allow_info_markers":True}
     # variable_params = {"allow_danger_markers":[False]*50 + [True]*50}
 
-    model_reporters = {
-        "step in quicksands": lambda model: model.step_in_quicksands,
-        "step in quicksands/T": lambda model: model.step_in_quicksands
-        / model.schedule.steps,
-        "time step": lambda model: model.schedule.steps,
-    }
+    # model_reporters = {"step in quicksands": lambda model:model.step_in_quicksands,
+    #                 "step in quicksands/T": lambda model:model.step_in_quicksands/model.schedule.steps,
+    #                 "time step": lambda model:model.schedule.steps}
+    #
+    # runner = BatchRunner(MinedZone,
+    #                         variable_parameters=variable_params,
+    #                         fixed_parameters=fixed_params,
+    #                         model_reporters=model_reporters)
+    #
+    # runner.run_all()
+    # df = runner.get_model_vars_dataframe()
+    #
+    # print(df)
 
-    runner = BatchRunner(
-        MinedZone,
-        variable_parameters=variable_params,
-        fixed_parameters=fixed_params,
-        model_reporters=model_reporters,
-    )
-
-    runner.run_all()
-    df = runner.get_model_vars_dataframe()
-
-    print(df)
-
-    print(df["time step"].mean())
-    print(df["time step"].std())
-
-    # ----- Analyse allow_smart_angle_chgt -----
-    mask = df["allow_smart_angle_chgt"]
-    time_step_with_smart_angle_chgt = df[mask]["time step"]
-    time_step_without_smart_angle_chgt = df[~mask]["time step"]
-    print(time_step_with_smart_angle_chgt.mean())
-    print(time_step_without_smart_angle_chgt.mean())
-
-    # ----- Analyse allow_danger_markers -----
-    # mask = df['allow_danger_markers']
-    # time_step_with_smart_angle_chgt = df[mask]['step in quicksands/T']
-    # time_step_without_smart_angle_chgt = df[~mask]['step in quicksands/T']
-    # print(time_step_with_smart_angle_chgt.mean())
-    # print(time_step_without_smart_angle_chgt.mean())
-
+    return
 
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "-rb",
-        "--run_batch",
-        default=0,
-        type=int,
-        help="if 0 runs notebook in singular server mode, else runs notebook in batch mode (default: 0)",
-    )
+    parser.add_argument('-rb', '--run_batch', default=0, type=int,
+    help='if 0 runs notebook in singular server mode, else runs notebook in batch mode (default: 0)')
     args = parser.parse_args()
 
     if args.run_batch:
