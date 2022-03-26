@@ -7,7 +7,7 @@ from mesa.space import ContinuousSpace
 from mesa.time import RandomActivation
 from mesa.datacollection import DataCollector
 
-from main import MarkerPurpose
+from marker import MarkerPurpose
 
 
 class Obstacle:  # Environnement: obstacle infranchissable

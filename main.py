@@ -1,8 +1,6 @@
-import enum
 import mesa
 import argparse
 import mesa.space
-from enum import Enum
 from mesa.batchrunner import BatchRunner
 from mesa.visualization.modules import ChartModule
 from mesa.visualization.ModularVisualization import ModularServer
@@ -17,36 +15,12 @@ MAX_ITERATION = 100
 PROBA_CHGT_ANGLE = 0.03
 
 
-class MarkerPurpose(Enum):
-    DANGER = (enum.auto(),)
-    FOOD = enum.auto()
-
-
 class Point:
     def __init__(self, x: float, y: float) -> list(float, float):
         self.x, self.y = x, y
 
     def get_position(self) -> list(float, float):
         return self.x, self.y
-
-
-class Marker:  # La classe pour les balises
-    def __init__(self, x, y, purpose, directions):
-        self.x = x
-        self.y = y
-        self.purpose = purpose
-        if purpose == MarkerPurpose.FOOD:
-            self.directions = directions
-
-    def portrayal_method(self):
-        portrayal = {
-            "Shape": "circle",
-            "Filled": "true",
-            "Layer": 2,
-            "Color": "red" if self.purpose == MarkerPurpose.DANGER else "green",
-            "r": 2,
-        }
-        return portrayal
 
 
 # class Robot(Agent):  # La classe des agents
