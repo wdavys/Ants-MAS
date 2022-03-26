@@ -31,6 +31,13 @@ class MarkerPurpose(Enum):
     DANGER = enum.auto(),
     FOOD = enum.auto()
 
+class Point():
+    def __init__(self, x: float, y: float) -> list(float, float):
+        self.x, self.y = x, y
+    
+    def get_position(self) -> list(float, float):
+        return self.x, self.y
+
 
 class ContinuousCanvas(VisualizationElement):
     local_includes = [
@@ -146,66 +153,6 @@ class Colony:
         self.y = y
         self.r = r
         self.ants = ants
-
-
-class Ant(Agent):
-    def __init__(self, unique_id: int, model: Model, x, y, speed, angle,
-                    sight_distance)
-        super().__init__(unique_id, model)
-        self.x = x
-        self.y = y
-        self.speed = speed
-        self.sight_distance = sight_distance
-        self.angle = angle
-        self.is_carrying = False
-        self.is_on_food_marker = False
-
-    def next_pos(self):
-        next_x = self.x + self.speed * math.cos(self.angle)
-        next_y = self.y + self.speed * math.sin(self.angle)
-        return next_x, next_y
-
-    def go_to(self, destination):
-        x = self.x
-        y = self.y
-        speed = self.speed
-        dist_to_destination = euclidean(self, destination)
-
-        if dist_to_destination < speed:
-            return (dest_x, dest_y), 2 * math.pi * random.random()
-        else:
-            angle = math.acos((dest_x - x)/dist_to_destination)
-            if dest_y < y:
-                angle = - angle
-            return self.next_pos(), angle
-
-
-    def step(self):
-
-        foods = [food for food in self.model.foods if euclidean(food, self)<self.sight_distance]
-        food_markers = [marker for marker in self.model.markers if marker.purpose == MarkerPurpose.FOOD]
-        if foods:
-            nearest_food = food[np.argmin([euclidean(self, food) for food in foods])]
-            next_x, next_y, angle = self.go_to(nearest_food)
-        elif food_markers:
-            nearest_food_marker = food_markers[np.argmin([euclidean(self, marker) for marker in food_markers])]
-            next_x, next_y = nearest_food_marker.x, nearest_food_marker.y
-            self.is_on_food_marker = True
-
-
-        self.x, self.y = next_x, next_y
-
-        self.x, self.y = self.next_pos()
-
-        if random.random() < PROBA_CHGT_ANGLE:
-            self.angle = random.random()*2*np.pi
-
-
-    def portrayal_method(self):
-        portrayal = {"Shape": "arrowHead", "s": 1, "Filled": "true", "Color": "Red", "Layer": 3, 'x': self.x,
-                     'y': self.y, "angle": self.angle}
-        return portrayal
-
 
 
 # class Robot(Agent):  # La classe des agents
