@@ -7,8 +7,8 @@ from mesa.space import ContinuousSpace
 from mesa.time import RandomActivation
 from mesa.datacollection import DataCollector
 
-from marker import MarkerPurpose
 from ant import Ant
+from marker import MarkerPurpose
 
 
 class Obstacle:  # Environnement: obstacle infranchissable
@@ -51,14 +51,15 @@ class Food:
 
 
 class Colony:
-    def __init__(self, x, y, r, ants, color_colonie):
+    def __init__(self, x, y, r, ants, color_colonie, idx_colony):
         self.x = x
         self.y = y
         self.r = r
         self.ants = ants
         self.food_picked = 0
         self.color_colonie = color_colonie
-    
+        self.idx_colony = idx_colony
+
     def portrayal_method(self):
         portrayal = {
             "Shape": "circle",
@@ -128,11 +129,20 @@ class Ground(Model):
                 o for o in self.obstacles if np.linalg.norm((o.x - x, o.y - y)) < o.r
             ]:
                 x, y = random.random() * 500, random.random() * 500
-            food = Food(x=x, y=y, r=1, stock=random.randint(10, 100), color_food=self.color_food)
+            food = Food(
+                x=x, y=y, r=1, stock=random.randint(10, 100), color_food=self.color_food
+            )
             self.foods.append(food)
 
         for idx_colony in range(n_colony):
-            colony = Colony(x, y, [], color_colonies[idx_colony], color_colonie=self.color_colonies[idx_colony])
+            colony = Colony(
+                x,
+                y,
+                [],
+                color_colonies[idx_colony],
+                color_colonie=self.color_colonies[idx_colony],
+                idx_colony=idx_colony,
+            )
             x, y = random.random() * 500, random.random() * 500
             while [
                 o for o in self.obstacles if np.linalg.norm((o.x - x, o.y - y)) < o.r
