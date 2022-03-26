@@ -277,7 +277,7 @@ def run_single_server():
         [
             {"Label": "Foods", "Color": "Orange"},
             {"Label": "Danger markers", "Color": "Red"},
-            {"Label": "FOOD markers", "Color": "Green"},
+            {"Label": "Food markers", "Color": "Green"},
         ],
         data_collector_name="datacollector",
     )
@@ -291,6 +291,7 @@ def run_single_server():
             "n_ants_per_colony": [10, 10],
             "color_colonies": ["#00C8FF", "#52FF2B"],
             "color_ants": ["#0000A6", "#008300"],
+            "color_food": ["#EAEA08"],
             "n_food": mesa.visualization.ModularVisualization.UserSettableParameter(
                 "slider", "Number of foods", 3, 1, 5, 1
             ),

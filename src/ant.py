@@ -35,6 +35,7 @@ class Ant(Agent):
         self.is_on_food_marker = False
         self.ignore_markers_counts = 0
         self.ignore_steps_after_marker = ignore_steps_after_marker
+        self.color = color
 
     def next_pos(self) -> Tuple:
         next_x, next_y = move(self.x, self.y, self.speed, self.angle)
@@ -155,7 +156,7 @@ class Ant(Agent):
             "Shape": "arrowHead",
             "s": 1,
             "Filled": "true",
-            "Color": "Red",
+            "Color": self.color,
             "Layer": 3,
             "x": self.x,
             "y": self.y,

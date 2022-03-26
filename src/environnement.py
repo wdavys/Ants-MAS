@@ -29,18 +29,19 @@ class Obstacle:  # Environnement: obstacle infranchissable
 
 
 class Food:
-    def __init__(self, x, y, r, stock):
+    def __init__(self, x, y, r, stock, color_food):
         self.x = x
         self.y = y
         self.r = r
         self.stock = stock
+        self.color_food = color_food
 
     def portrayal_method(self):
         portrayal = {
             "Shape": "circle",
             "Filled": "true",
             "Layer": 1,
-            "Color": "olive",
+            "Color": self.color_food,
             "r": self.r * self.stock,
         }
         return portrayal
@@ -50,12 +51,23 @@ class Food:
 
 
 class Colony:
-    def __init__(self, x, y, r, ants):
+    def __init__(self, x, y, r, ants, color_colonie):
         self.x = x
         self.y = y
         self.r = r
         self.ants = ants
         self.food_picked = 0
+        self.color_colonie = color_colonie
+    
+    def portrayal_method(self):
+        portrayal = {
+            "Shape": "circle",
+            "Filled": "true",
+            "Layer": 1,
+            "Color": self.color_colonie,
+            "r": self.r * self.stock,
+        }
+        return portrayal
 
 
 class Ground(Model):
@@ -78,12 +90,13 @@ class Ground(Model):
         n_ants_per_colony,
         color_ants,
         color_colonies,
+        color_food,
         n_obstacles,
         n_food,
         speed,
         allow_info_markers=True,
         allow_danger_markers=True,
-        sight_distance=30,
+        sight_distance=50,
     ):
         Model.__init__(self)
         self.space = ContinuousSpace(600, 600, False)
@@ -97,6 +110,8 @@ class Ground(Model):
         self.colonies = []
         self.foods = []
         self.color_ants = color_ants
+        self.color_colonies = color_colonies
+        self.color_food = color_food
 
         for _ in range(n_obstacles):
             self.obstacles.append(
@@ -113,10 +128,11 @@ class Ground(Model):
                 o for o in self.obstacles if np.linalg.norm((o.x - x, o.y - y)) < o.r
             ]:
                 x, y = random.random() * 500, random.random() * 500
-            self.foods.append(Food(x=x, y=y, r=random.randint(100, 300), stock=30))
+            food = Food(x=x, y=y, r=1, stock=random.randint(10, 100), color_food=self.color_food)
+            self.foods.append(food)
 
         for idx_colony in range(n_colony):
-            colony = Colony(x, y, [], color_colonies[idx_colony])
+            colony = Colony(x, y, [], color_colonies[idx_colony], color_colonie=self.color_colonies[idx_colony])
             x, y = random.random() * 500, random.random() * 500
             while [
                 o for o in self.obstacles if np.linalg.norm((o.x - x, o.y - y)) < o.r
@@ -133,7 +149,7 @@ class Ground(Model):
                     colony=colony,
                     angle=random.random() * 2 * np.pi,
                     sight_distance=sight_distance,
-                    color=color_ants[idx_colony],
+                    color=self.color_ants[idx_colony],
                 )
                 for _ in range(n_ants_per_colony[idx_colony])
             ]
