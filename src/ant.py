@@ -49,7 +49,7 @@ class Ant(Agent):
         reached = False
 
         if dist_to_destination < speed:
-            next_x, next_y = destination.x, destination.Y
+            next_x, next_y = destination.x, destination.y
             next_angle = 2 * math.pi * random.random()
             reached = True
             return (next_x, next_y), next_angle, reached
