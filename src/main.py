@@ -273,31 +273,37 @@ PROBA_CHGT_ANGLE = 0.03
 
 
 def run_single_server():
-    chart = ChartModule([{"Label": "Foods",
-                          "Color": "Orange"},
-                         {"Label": "Danger markers",
-                          "Color": "Red"},
-                         {"Label": "FOOD markers",
-                          "Color": "Green"}
-                         ],
-                        data_collector_name='datacollector')
+    chart = ChartModule(
+        [
+            {"Label": "Foods", "Color": "Orange"},
+            {"Label": "Danger markers", "Color": "Red"},
+            {"Label": "FOOD markers", "Color": "Green"},
+        ],
+        data_collector_name="datacollector",
+    )
 
-    server = ModularServer(Ground,
-                           [ContinuousCanvas(),
-                            chart],
-                           "Ants colonies",
-                           {"n_colony": 2,
-                            "n_ants_per_colony": [10, 10],
-                            "color_colonies": ["#00C8FF", "#52FF2B"],
-                            "color_ants": ["#0000A6", "#008300"],
-                            "n_food": mesa.visualization.
-                            ModularVisualization.UserSettableParameter('slider', "Number of foods", 3, 1, 5, 1),
-                            "n_obstacles": mesa.visualization.
-                            ModularVisualization.UserSettableParameter('slider', "Number of obstacles", 5, 2, 10, 1),
-                            "speed": mesa.visualization.
-                            ModularVisualization.UserSettableParameter('slider', "Ant speed", 5, 5, 40, 5),
-                            "allow_danger_markers": True,
-                            "allow_info_markers": True})
+    server = ModularServer(
+        Ground,
+        [ContinuousCanvas(), chart],
+        "Ants colonies",
+        {
+            "n_colony": 2,
+            "n_ants_per_colony": [10, 10],
+            "color_colonies": ["#00C8FF", "#52FF2B"],
+            "color_ants": ["#0000A6", "#008300"],
+            "n_food": mesa.visualization.ModularVisualization.UserSettableParameter(
+                "slider", "Number of foods", 3, 1, 5, 1
+            ),
+            "n_obstacles": mesa.visualization.ModularVisualization.UserSettableParameter(
+                "slider", "Number of obstacles", 5, 2, 10, 1
+            ),
+            "speed": mesa.visualization.ModularVisualization.UserSettableParameter(
+                "slider", "Ant speed", 5, 5, 40, 5
+            ),
+            "allow_danger_markers": True,
+            "allow_info_markers": True,
+        },
+    )
     server.port = 8521
     server.launch()
 
@@ -313,7 +319,6 @@ def run_batch():
     #                 "allow_danger_markers":True,
     #                 "allow_info_markers":True}
     # variable_params = {"allow_smart_angle_chgt":[False]*50 + [True]*50 }
-
 
     # ----- Analyse allow_danger_markers -----
     # fixed_params = {"n_robots":8,
@@ -341,11 +346,17 @@ def run_batch():
 
     return
 
+
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('-rb', '--run_batch', default=0, type=int,
-    help='if 0 runs notebook in singular server mode, else runs notebook in batch mode (default: 0)')
+    parser.add_argument(
+        "-rb",
+        "--run_batch",
+        default=0,
+        type=int,
+        help="if 0 runs notebook in singular server mode, else runs notebook in batch mode (default: 0)",
+    )
     args = parser.parse_args()
 
     if args.run_batch:

@@ -126,7 +126,7 @@ class Ant(Agent):
             else:
                 # The ant did not see any food
 
-                if self.ignore_markers_counts == 0 & (
+                if self.ignore_markers_counts == 0 and (
                     nearest_food_marker := self.look_for_food_marker() is not None
                 ):
                     # The ant is aware of markers and saw one
@@ -141,7 +141,7 @@ class Ant(Agent):
                 else:
                     # The ant did not see any food nor markers, it explores the environement
 
-                    next_x, next_x = space.move(
+                    next_x, next_y = space.move(
                         x=self.x, y=self.y, speed=self.speed, angle=self.angle
                     )
                     next_angle = 2 * np.pi * random.random()
