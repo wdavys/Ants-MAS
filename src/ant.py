@@ -12,7 +12,7 @@ def move(x, y, speed, angle):
 
 
 def euclidean(p1: Point, p2: Point):
-    return np.linalg.norm(p1.x - p2.x, p1.y - p2.y, ord=2)
+    return np.linalg.norm((p1.x - p2.x, p1.y - p2.y), ord=2)
 
 
 class Ant(Agent):
