@@ -16,14 +16,6 @@ MAX_ITERATION = 100
 PROBA_CHGT_ANGLE = 0.03
 
 
-class Point:
-    def __init__(self, x: float, y: float):
-        self.x, self.y = x, y
-
-    def get_position(self) -> List[float]:
-        return self.x, self.y
-
-
 # class Robot(Agent):  # La classe des agents
 #     def __init__(self, unique_id: int, model: Model, x, y, speed, sight_distance,
 #                         allow_smart_angle_chgt, allow_danger_markers, allow_info_markers,
