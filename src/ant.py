@@ -61,7 +61,7 @@ class Ant(Agent):
             return self.next_pos(), next_angle, reached
 
     def go_back_to_colony(self) -> Tuple:
-        next_x, next_y, next_angle, reached = self.go_to(self.colony)
+        (next_x, next_y), next_angle, reached = self.go_to(self.colony)
 
         if reached:
             self.colony.food_picked += 1
@@ -73,7 +73,7 @@ class Ant(Agent):
         foods_at_sight = [
             food
             for food in self.model.foods
-            if euclidean(food, self) < self.sight_distance
+            if euclidean(self, food) < self.sight_distance
         ]
         if foods_at_sight:
             nearest_food = foods_at_sight[
@@ -102,11 +102,12 @@ class Ant(Agent):
 
         else:
             # The ant is looking for either food or markers
+            nearest_food = self.look_for_food()
 
-            if nearest_food := self.look_for_food() is not None:
+            if nearest_food is not None:
                 # The ant saw some food
 
-                next_x, next_y, next_angle, food_reached = self.go_to(nearest_food)
+                (next_x, next_y), next_angle, food_reached = self.go_to(nearest_food)
 
                 # The ant can already leave a food marker
                 food_marker = Marker(
@@ -114,6 +115,7 @@ class Ant(Agent):
                     y=self.y,
                     purpose=MarkerPurpose.FOOD,
                     directions=next_angle,
+                    color=self.color,
                 )
                 self.model.markers.append(food_marker)
                 self.ignore_markers_counts += self.ignore_steps_after_marker
@@ -127,12 +129,13 @@ class Ant(Agent):
             else:
                 # The ant did not see any food
 
+                nearest_food_marker = self.look_for_food_marker()
                 if self.ignore_markers_counts == 0 and (
-                    nearest_food_marker := self.look_for_food_marker() is not None
+                    nearest_food_marker is not None
                 ):
                     # The ant is aware of markers and saw one
 
-                    next_x, next_y, next_angle, marker_reached = self.go_to(
+                    (next_x, next_y), next_angle, marker_reached = self.go_to(
                         nearest_food_marker
                     )
 
