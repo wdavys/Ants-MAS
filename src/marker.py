@@ -2,7 +2,7 @@ import enum
 
 
 class MarkerPurpose(enum.Enum):
-    DANGER = (enum.auto(),)
+    DANGER = enum.auto()
     FOOD = enum.auto()
 
 
