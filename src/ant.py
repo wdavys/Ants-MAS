@@ -3,8 +3,8 @@ import random
 import numpy as np
 from mesa import Agent, Model
 
-from main import Point
-from marker import MarkerPurpose
+from .main import Point
+from .marker import MarkerPurpose
 
 
 def move(x, y, speed, angle):

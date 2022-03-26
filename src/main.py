@@ -1,3 +1,4 @@
+from typing import List
 import mesa
 import argparse
 import mesa.space
@@ -5,8 +6,8 @@ from mesa.batchrunner import BatchRunner
 from mesa.visualization.modules import ChartModule
 from mesa.visualization.ModularVisualization import ModularServer
 
-from environnement import MinedZone
-from canvas import ContinuousCanvas
+from .environnement import MinedZone
+from .canvas import ContinuousCanvas
 
 ########################
 ###### CONSTANS ########
@@ -16,10 +17,10 @@ PROBA_CHGT_ANGLE = 0.03
 
 
 class Point:
-    def __init__(self, x: float, y: float) -> list(float, float):
+    def __init__(self, x: float, y: float):
         self.x, self.y = x, y
 
-    def get_position(self) -> list(float, float):
+    def get_position(self) -> List[float]:
         return self.x, self.y
 
 
