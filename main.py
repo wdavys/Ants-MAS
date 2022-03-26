@@ -1,19 +1,11 @@
 import enum
-import math
-import uuid
 import mesa
-import random
 import argparse
 import mesa.space
-import numpy as np
 from enum import Enum
-from mesa import Model
-from collections import defaultdict
-from mesa.time import RandomActivation
 from mesa.batchrunner import BatchRunner
-from mesa.datacollection import DataCollector
 from mesa.visualization.modules import ChartModule
-from mesa.visualization.ModularVisualization import VisualizationElement, ModularServer
+from mesa.visualization.ModularVisualization import ModularServer
 
 from environnement import MinedZone
 from canvas import ContinuousCanvas
