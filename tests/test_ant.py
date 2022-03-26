@@ -3,9 +3,10 @@ import uuid
 import numpy as np
 from mesa import Model
 
-from src import ant, main
+from src import ant, main, space, environnement
 
 MODEL = Model()
+COLONY = environnement.Colony(x=0, y=0, r=10, ants=10)
 
 def test_create_ant():
     test_ant = ant.Ant(
@@ -15,12 +16,13 @@ def test_create_ant():
         y=0,
         speed=10,
         angle=0,
+        colony=COLONY,
         sight_distance=20,
         proba_cgt_angle=0.5
     )
 
 def test_go_to_reachable():
-    target = main.Point(7, 2)
+    target = space.Point(7, 2)
     test_ant = ant.Ant(
         unique_id=uuid.uuid1(),
         model=MODEL,
@@ -28,6 +30,7 @@ def test_go_to_reachable():
         y=0,
         speed=10,
         angle=0,
+        colony=COLONY,
         sight_distance=20,
         proba_cgt_angle=0.5
     )
@@ -41,7 +44,7 @@ def test_go_to_reachable():
     assert reached == predicted_reach
 
 def test_go_to_not_reachable():
-    target = main.Point(10, 2)
+    target = space.Point(10, 2)
     test_ant = ant.Ant(
         unique_id=uuid.uuid1(),
         model=MODEL,
@@ -49,6 +52,7 @@ def test_go_to_not_reachable():
         y=0,
         speed=10,
         angle=0,
+        colony=COLONY,
         sight_distance=20,
         proba_cgt_angle=0.5
     )

@@ -28,11 +28,11 @@ class Obstacle:  # Environnement: obstacle infranchissable
 
 
 class Food:
-    def __init__(self, x, y, r, weight):
+    def __init__(self, x, y, r, stock):
         self.x = x
         self.y = y
         self.r = r
-        self.n = weight
+        self.n = stock
 
     def portrayal_method(self):
         portrayal = {
@@ -40,12 +40,12 @@ class Food:
             "Filled": "true",
             "Layer": 1,
             "Color": "olive",
-            "r": self.r * self.weight,
+            "r": self.r * self.stock,
         }
         return portrayal
 
     def get_one_piece(self):
-        self.weight -= 1
+        self.stock -= 1
 
 
 class Colony:
@@ -54,6 +54,7 @@ class Colony:
         self.y = y
         self.r = r
         self.ants = ants
+        self.food_picked = 0
 
 
 class MinedZone(Model):
@@ -85,16 +86,10 @@ class MinedZone(Model):
         Model.__init__(self)
         self.space = ContinuousSpace(600, 600, False)
         self.schedule = RandomActivation(self)
-        self.mines = []  # Access list of mines from robot through self.model.mines
-        self.markers = (
-            []
-        )  # Access list of markers from robot through self.model.markers (both read and write)
-        self.obstacles = (
-            []
-        )  # Access list of obstacles from robot through self.model.obstacles
-        self.quicksands = (
-            []
-        )  # Access list of quicksands from robot through self.model.quicksands
+        self.mines = []
+        self.markers = []
+        self.obstacles = []
+        self.quicksands = []
         for _ in range(n_obstacles):
             self.obstacles.append(
                 Obstacle(
