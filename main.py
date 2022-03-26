@@ -1,31 +1,27 @@
 import enum
 import math
-import random
 import uuid
-from enum import Enum
-import matplotlib.pyplot as plt
-import argparse
-from mesa.batchrunner import BatchRunner
-
 import mesa
-import numpy as np
-from collections import defaultdict
-
+import random
+import argparse
 import mesa.space
-from mesa import Agent, Model
-from mesa.datacollection import DataCollector
+import numpy as np
+from enum import Enum
+from mesa import Model
+from collections import defaultdict
 from mesa.time import RandomActivation
-from mesa.visualization.ModularVisualization import VisualizationElement, ModularServer
+from mesa.batchrunner import BatchRunner
+from mesa.datacollection import DataCollector
 from mesa.visualization.modules import ChartModule
+from mesa.visualization.ModularVisualization import VisualizationElement, ModularServer
 
+from ant import Ant
+
+########################
+###### CONSTANS ########
+########################
 MAX_ITERATION = 100
 PROBA_CHGT_ANGLE = 0.03
-
-def move(x, y, speed, angle):
-    return x + speed * math.cos(angle), y + speed * math.sin(angle)
-
-def euclidean(p1, p2):
-    return np.linalg.norm(p1.x-p2.x, p1.y-p2.y)
 
 class MarkerPurpose(Enum):
     DANGER = enum.auto(),
