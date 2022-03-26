@@ -24,14 +24,16 @@ from canvas import ContinuousCanvas
 MAX_ITERATION = 100
 PROBA_CHGT_ANGLE = 0.03
 
+
 class MarkerPurpose(Enum):
-    DANGER = enum.auto(),
+    DANGER = (enum.auto(),)
     FOOD = enum.auto()
 
-class Point():
+
+class Point:
     def __init__(self, x: float, y: float) -> list(float, float):
         self.x, self.y = x, y
-    
+
     def get_position(self) -> list(float, float):
         return self.x, self.y
 
@@ -41,15 +43,15 @@ class ContinuousCanvas(VisualizationElement):
         "./js/simple_continuous_canvas.js",
     ]
 
-    def __init__(self, canvas_height=500,
-                 canvas_width=500, instantiate=True):
+    def __init__(self, canvas_height=500, canvas_width=500, instantiate=True):
         VisualizationElement.__init__(self)
         self.canvas_height = canvas_height
         self.canvas_width = canvas_width
         self.identifier = "space-canvas"
-        if (instantiate):
-            new_element = ("new Simple_Continuous_Module({}, {},'{}')".
-                           format(self.canvas_width, self.canvas_height, self.identifier))
+        if instantiate:
+            new_element = "new Simple_Continuous_Module({}, {},'{}')".format(
+                self.canvas_width, self.canvas_height, self.identifier
+            )
             self.js_code = "elements.push(" + new_element + ");"
 
     def portrayal_method(self, obj):
@@ -60,34 +62,42 @@ class ContinuousCanvas(VisualizationElement):
         for obj in model.schedule.agents:
             portrayal = self.portrayal_method(obj)
             if portrayal:
-                portrayal["x"] = ((obj.x - model.space.x_min) /
-                                  (model.space.x_max - model.space.x_min))
-                portrayal["y"] = ((obj.y - model.space.y_min) /
-                                  (model.space.y_max - model.space.y_min))
+                portrayal["x"] = (obj.x - model.space.x_min) / (
+                    model.space.x_max - model.space.x_min
+                )
+                portrayal["y"] = (obj.y - model.space.y_min) / (
+                    model.space.y_max - model.space.y_min
+                )
             representation[portrayal["Layer"]].append(portrayal)
         for obj in model.foods:
             portrayal = self.portrayal_method(obj)
             if portrayal:
-                portrayal["x"] = ((obj.x - model.space.x_min) /
-                                  (model.space.x_max - model.space.x_min))
-                portrayal["y"] = ((obj.y - model.space.y_min) /
-                                  (model.space.y_max - model.space.y_min))
+                portrayal["x"] = (obj.x - model.space.x_min) / (
+                    model.space.x_max - model.space.x_min
+                )
+                portrayal["y"] = (obj.y - model.space.y_min) / (
+                    model.space.y_max - model.space.y_min
+                )
             representation[portrayal["Layer"]].append(portrayal)
         for obj in model.markers:
             portrayal = self.portrayal_method(obj)
             if portrayal:
-                portrayal["x"] = ((obj.x - model.space.x_min) /
-                                  (model.space.x_max - model.space.x_min))
-                portrayal["y"] = ((obj.y - model.space.y_min) /
-                                  (model.space.y_max - model.space.y_min))
+                portrayal["x"] = (obj.x - model.space.x_min) / (
+                    model.space.x_max - model.space.x_min
+                )
+                portrayal["y"] = (obj.y - model.space.y_min) / (
+                    model.space.y_max - model.space.y_min
+                )
             representation[portrayal["Layer"]].append(portrayal)
         for obj in model.obstacles:
             portrayal = self.portrayal_method(obj)
             if portrayal:
-                portrayal["x"] = ((obj.x - model.space.x_min) /
-                                  (model.space.x_max - model.space.x_min))
-                portrayal["y"] = ((obj.y - model.space.y_min) /
-                                  (model.space.y_max - model.space.y_min))
+                portrayal["x"] = (obj.x - model.space.x_min) / (
+                    model.space.x_max - model.space.x_min
+                )
+                portrayal["y"] = (obj.y - model.space.y_min) / (
+                    model.space.y_max - model.space.y_min
+                )
             representation[portrayal["Layer"]].append(portrayal)
 
         return representation
@@ -100,11 +110,13 @@ class Obstacle:  # Environnement: obstacle infranchissable
         self.r = r
 
     def portrayal_method(self):
-        portrayal = {"Shape": "circle",
-                     "Filled": "true",
-                     "Layer": 1,
-                     "Color": "black",
-                     "r": self.r}
+        portrayal = {
+            "Shape": "circle",
+            "Filled": "true",
+            "Layer": 1,
+            "Color": "black",
+            "r": self.r,
+        }
         return portrayal
 
 
@@ -116,11 +128,13 @@ class Food:
         self.n = weight
 
     def portrayal_method(self):
-        portrayal = {"Shape": "circle",
-                     "Filled": "true",
-                     "Layer": 1,
-                     "Color": "olive",
-                     "r": self.r*self.weight}
+        portrayal = {
+            "Shape": "circle",
+            "Filled": "true",
+            "Layer": 1,
+            "Color": "olive",
+            "r": self.r * self.weight,
+        }
         return portrayal
 
     def get_one_piece(self):
@@ -136,11 +150,13 @@ class Marker:  # La classe pour les balises
             self.directions = directions
 
     def portrayal_method(self):
-        portrayal = {"Shape": "circle",
-                     "Filled": "true",
-                     "Layer": 2,
-                     "Color": "red" if self.purpose == MarkerPurpose.DANGER else "green",
-                     "r": 2}
+        portrayal = {
+            "Shape": "circle",
+            "Filled": "true",
+            "Layer": 2,
+            "Color": "red" if self.purpose == MarkerPurpose.DANGER else "green",
+            "r": 2,
+        }
         return portrayal
 
 
@@ -410,43 +426,85 @@ class Colony:
 
 class MinedZone(Model):
     collector = DataCollector(
-        model_reporters={"Mines": lambda model: len(model.mines),
-                         "Danger markers": lambda model: len([m for m in model.markers if
-                                                          m.purpose == MarkerPurpose.DANGER]),
-                         "FOOD markers": lambda model: len([m for m in model.markers if
-                                                          m.purpose == MarkerPurpose.FOOD]),
-                         "Steps in quicksand": lambda model: model.step_in_quicksands},
-        agent_reporters={})
+        model_reporters={
+            "Mines": lambda model: len(model.mines),
+            "Danger markers": lambda model: len(
+                [m for m in model.markers if m.purpose == MarkerPurpose.DANGER]
+            ),
+            "FOOD markers": lambda model: len(
+                [m for m in model.markers if m.purpose == MarkerPurpose.FOOD]
+            ),
+            "Steps in quicksand": lambda model: model.step_in_quicksands,
+        },
+        agent_reporters={},
+    )
 
-    def __init__(self, n_robots, n_obstacles, n_quicksand, n_mines, speed,
-                    allow_info_markers=True, allow_danger_markers=True, allow_smart_angle_chgt=True):
+    def __init__(
+        self,
+        n_robots,
+        n_obstacles,
+        n_quicksand,
+        n_mines,
+        speed,
+        allow_info_markers=True,
+        allow_danger_markers=True,
+        allow_smart_angle_chgt=True,
+    ):
         Model.__init__(self)
         self.space = mesa.space.ContinuousSpace(600, 600, False)
         self.schedule = RandomActivation(self)
         self.mines = []  # Access list of mines from robot through self.model.mines
-        self.markers = []  # Access list of markers from robot through self.model.markers (both read and write)
-        self.obstacles = []  # Access list of obstacles from robot through self.model.obstacles
-        self.quicksands = []  # Access list of quicksands from robot through self.model.quicksands
+        self.markers = (
+            []
+        )  # Access list of markers from robot through self.model.markers (both read and write)
+        self.obstacles = (
+            []
+        )  # Access list of obstacles from robot through self.model.obstacles
+        self.quicksands = (
+            []
+        )  # Access list of quicksands from robot through self.model.quicksands
         for _ in range(n_obstacles):
-            self.obstacles.append(Obstacle(random.random() * 500, random.random() * 500, 10 + 20 * random.random()))
+            self.obstacles.append(
+                Obstacle(
+                    random.random() * 500,
+                    random.random() * 500,
+                    10 + 20 * random.random(),
+                )
+            )
         for _ in range(n_robots):
             x, y = random.random() * 500, random.random() * 500
-            while [o for o in self.obstacles if np.linalg.norm((o.x - x, o.y - y)) < o.r] or \
-                    [o for o in self.quicksands if np.linalg.norm((o.x - x, o.y - y)) < o.r]:
+            while [
+                o for o in self.obstacles if np.linalg.norm((o.x - x, o.y - y)) < o.r
+            ] or [
+                o for o in self.quicksands if np.linalg.norm((o.x - x, o.y - y)) < o.r
+            ]:
                 x, y = random.random() * 500, random.random() * 500
             self.schedule.add(
-                Robot(int(uuid.uuid1()), self, x, y, speed, 2 * speed,
-                        allow_smart_angle_chgt, allow_danger_markers, allow_info_markers,
-                        random.random() * 2 * math.pi))
+                Robot(
+                    int(uuid.uuid1()),
+                    self,
+                    x,
+                    y,
+                    speed,
+                    2 * speed,
+                    allow_smart_angle_chgt,
+                    allow_danger_markers,
+                    allow_info_markers,
+                    random.random() * 2 * math.pi,
+                )
+            )
         for _ in range(n_mines):
             x, y = random.random() * 500, random.random() * 500
-            while [o for o in self.obstacles if np.linalg.norm((o.x - x, o.y - y)) < o.r] or \
-                    [o for o in self.quicksands if np.linalg.norm((o.x - x, o.y - y)) < o.r]:
+            while [
+                o for o in self.obstacles if np.linalg.norm((o.x - x, o.y - y)) < o.r
+            ] or [
+                o for o in self.quicksands if np.linalg.norm((o.x - x, o.y - y)) < o.r
+            ]:
                 x, y = random.random() * 500, random.random() * 500
             self.mines.append(Mine(x, y))
         self.datacollector = self.collector
         # self.t = 0
-        self.step_in_quicksands=0
+        self.step_in_quicksands = 0
 
     def step(self):
         # self.t += 1
@@ -455,40 +513,50 @@ class MinedZone(Model):
         if not self.mines:
             self.running = False
 
-        self.step_in_quicksands += len([robot for robot in self.schedule.agents
-                                            if robot.speed == robot.quicksand_speed])
-
+        self.step_in_quicksands += len(
+            [
+                robot
+                for robot in self.schedule.agents
+                if robot.speed == robot.quicksand_speed
+            ]
+        )
 
 
 def run_single_server():
-    chart = ChartModule([{"Label": "Mines",
-                          "Color": "Orange"},
-                         {"Label": "Danger markers",
-                          "Color": "Red"},
-                         {"Label": "FOOD markers",
-                          "Color": "Green"},
-                          {"Label": "Steps in quicksand",
-                          "Color": "Black"}
-                         ],
-                        data_collector_name='datacollector')
-    server = ModularServer(MinedZone,
-                           [ContinuousCanvas(),
-                            chart],
-                           "Deminer robots",
-                           {"n_robots": mesa.visualization.
-                            ModularVisualization.UserSettableParameter('slider', "Number of robots", 7, 3,
-                                                                       15, 1),
-                            "n_obstacles": mesa.visualization.
-                            ModularVisualization.UserSettableParameter('slider', "Number of obstacles", 5, 2, 10, 1),
-                            "n_quicksand": mesa.visualization.
-                            ModularVisualization.UserSettableParameter('slider', "Number of quicksand", 5, 2, 10, 1),
-                            "speed": mesa.visualization.
-                            ModularVisualization.UserSettableParameter('slider', "Robot speed", 15, 5, 40, 5),
-                            "n_mines": mesa.visualization.
-                            ModularVisualization.UserSettableParameter('slider', "Number of mines", 15, 5, 30, 1),
-                            "allow_danger_markers": True,
-                            "allow_info_markers": True,
-                            "allow_smart_angle_chgt": True})
+    chart = ChartModule(
+        [
+            {"Label": "Mines", "Color": "Orange"},
+            {"Label": "Danger markers", "Color": "Red"},
+            {"Label": "FOOD markers", "Color": "Green"},
+            {"Label": "Steps in quicksand", "Color": "Black"},
+        ],
+        data_collector_name="datacollector",
+    )
+    server = ModularServer(
+        MinedZone,
+        [ContinuousCanvas(), chart],
+        "Deminer robots",
+        {
+            "n_robots": mesa.visualization.ModularVisualization.UserSettableParameter(
+                "slider", "Number of robots", 7, 3, 15, 1
+            ),
+            "n_obstacles": mesa.visualization.ModularVisualization.UserSettableParameter(
+                "slider", "Number of obstacles", 5, 2, 10, 1
+            ),
+            "n_quicksand": mesa.visualization.ModularVisualization.UserSettableParameter(
+                "slider", "Number of quicksand", 5, 2, 10, 1
+            ),
+            "speed": mesa.visualization.ModularVisualization.UserSettableParameter(
+                "slider", "Robot speed", 15, 5, 40, 5
+            ),
+            "n_mines": mesa.visualization.ModularVisualization.UserSettableParameter(
+                "slider", "Number of mines", 15, 5, 30, 1
+            ),
+            "allow_danger_markers": True,
+            "allow_info_markers": True,
+            "allow_smart_angle_chgt": True,
+        },
+    )
     server.port = 8521
     server.launch()
 
@@ -496,15 +564,16 @@ def run_single_server():
 def run_batch():
 
     # ----- Analyse allow_smart_angle_chgt -----
-    fixed_params = {"n_robots":8,
-                    "n_obstacles":5,
-                    "n_quicksand":5,
-                    "speed": 15,
-                    "n_mines":15,
-                    "allow_danger_markers":True,
-                    "allow_info_markers":True}
-    variable_params = {"allow_smart_angle_chgt":[False]*50 + [True]*50 }
-
+    fixed_params = {
+        "n_robots": 8,
+        "n_obstacles": 5,
+        "n_quicksand": 5,
+        "speed": 15,
+        "n_mines": 15,
+        "allow_danger_markers": True,
+        "allow_info_markers": True,
+    }
+    variable_params = {"allow_smart_angle_chgt": [False] * 50 + [True] * 50}
 
     # ----- Analyse allow_danger_markers -----
     # fixed_params = {"n_robots":8,
@@ -516,29 +585,32 @@ def run_batch():
     #                 "allow_info_markers":True}
     # variable_params = {"allow_danger_markers":[False]*50 + [True]*50}
 
+    model_reporters = {
+        "step in quicksands": lambda model: model.step_in_quicksands,
+        "step in quicksands/T": lambda model: model.step_in_quicksands
+        / model.schedule.steps,
+        "time step": lambda model: model.schedule.steps,
+    }
 
-
-    model_reporters = {"step in quicksands": lambda model:model.step_in_quicksands,
-                    "step in quicksands/T": lambda model:model.step_in_quicksands/model.schedule.steps,
-                    "time step": lambda model:model.schedule.steps}
-
-    runner = BatchRunner(MinedZone,
-                            variable_parameters=variable_params,
-                            fixed_parameters=fixed_params,
-                            model_reporters=model_reporters)
+    runner = BatchRunner(
+        MinedZone,
+        variable_parameters=variable_params,
+        fixed_parameters=fixed_params,
+        model_reporters=model_reporters,
+    )
 
     runner.run_all()
     df = runner.get_model_vars_dataframe()
 
     print(df)
 
-    print(df['time step'].mean())
-    print(df['time step'].std())
+    print(df["time step"].mean())
+    print(df["time step"].std())
 
     # ----- Analyse allow_smart_angle_chgt -----
-    mask = df['allow_smart_angle_chgt']
-    time_step_with_smart_angle_chgt = df[mask]['time step']
-    time_step_without_smart_angle_chgt = df[~mask]['time step']
+    mask = df["allow_smart_angle_chgt"]
+    time_step_with_smart_angle_chgt = df[mask]["time step"]
+    time_step_without_smart_angle_chgt = df[~mask]["time step"]
     print(time_step_with_smart_angle_chgt.mean())
     print(time_step_without_smart_angle_chgt.mean())
 
@@ -549,11 +621,17 @@ def run_batch():
     # print(time_step_with_smart_angle_chgt.mean())
     # print(time_step_without_smart_angle_chgt.mean())
 
+
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('-rb', '--run_batch', default=0, type=int,
-    help='if 0 runs notebook in singular server mode, else runs notebook in batch mode (default: 0)')
+    parser.add_argument(
+        "-rb",
+        "--run_batch",
+        default=0,
+        type=int,
+        help="if 0 runs notebook in singular server mode, else runs notebook in batch mode (default: 0)",
+    )
     args = parser.parse_args()
 
     if args.run_batch:

@@ -4,16 +4,27 @@ import numpy as np
 from mesa import Agent, Model
 from main import MarkerPurpose, Point
 
+
 def move(x, y, speed, angle):
     return x + speed * math.cos(angle), y + speed * math.sin(angle)
 
+
 def euclidean(p1: Point, p2: Point):
-    return np.linalg.norm(p1.x-p2.x, p1.y-p2.y, ord=2)
+    return np.linalg.norm(p1.x - p2.x, p1.y - p2.y, ord=2)
+
 
 class Ant(Agent):
     def __init__(
-        self, unique_id: int, model: Model, x: float, y: float, speed: float, angle: float,
-        sight_distance: float, proba_cgt_angle=0.03):
+        self,
+        unique_id: int,
+        model: Model,
+        x: float,
+        y: float,
+        speed: float,
+        angle: float,
+        sight_distance: float,
+        proba_cgt_angle=0.03,
+    ):
         super().__init__(unique_id, model)
         self.x = x
         self.y = y
@@ -45,23 +56,32 @@ class Ant(Agent):
         else:
             next_angle = math.acos((destination.x - x) / dist_to_destination)
             if destination.y < y:
-                next_angle = - next_angle
+                next_angle = -next_angle
             return self.next_pos(), next_angle, reached
 
     def step(self):
-        foods = [food for food in self.model.foods if euclidean(food, self) < self.sight_distance]
-        food_markers = [marker for marker in self.model.markers if marker.purpose == MarkerPurpose.FOOD]
+        foods = [
+            food
+            for food in self.model.foods
+            if euclidean(food, self) < self.sight_distance
+        ]
+        food_markers = [
+            marker
+            for marker in self.model.markers
+            if marker.purpose == MarkerPurpose.FOOD
+        ]
         if foods:
             nearest_food = foods[np.argmin([euclidean(self, food) for food in foods])]
             next_x, next_y, next_angle, reached = self.go_to(nearest_food)
         elif food_markers:
-            nearest_food_marker = food_markers[np.argmin([euclidean(self, marker) for marker in food_markers])]
+            nearest_food_marker = food_markers[
+                np.argmin([euclidean(self, marker) for marker in food_markers])
+            ]
             next_x, next_y, next_angle, reached = self.go_to(nearest_food_marker)
-            if reached: 
+            if reached:
                 self.is_on_food_marker = True
 
         self.x, self.y, self.angle = next_x, next_y, next_angle
-
 
     def portrayal_method(self):
         portrayal = {
@@ -70,8 +90,8 @@ class Ant(Agent):
             "Filled": "true",
             "Color": "Red",
             "Layer": 3,
-            'x': self.x,
-            'y': self.y,
-            "angle": self.angle
+            "x": self.x,
+            "y": self.y,
+            "angle": self.angle,
         }
         return portrayal
