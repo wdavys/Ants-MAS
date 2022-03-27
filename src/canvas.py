@@ -56,8 +56,9 @@ class ContinuousCanvas(VisualizationElement):
                     model.space.y_max - model.space.y_min
                 )
             representation[portrayal["Layer"]].append(portrayal)
-        for col in range(len(model.colonies)):
-            for obj in model.markers_dict[str(col)]:
+            
+        for id_colony in range(len(model.colonies)):
+            for obj in model.markers_dict[str(id_colony)]:
                 portrayal = self.portrayal_method(obj)
                 if portrayal:
                     portrayal["x"] = (obj.x - model.space.x_min) / (

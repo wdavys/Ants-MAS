@@ -128,7 +128,7 @@ class Ground(Model):
             or [c for c in self.colonies if np.linalg.norm((c.x - x, c.y - y)) <= c.r + r]:
                 x, y = random.random() * 500, random.random() * 500
             markers_colors = ["#"+''.join([random.choice('0123456789ABCDEF') for j in range(6)]),
-                              "#"+''.join([random.choice('0123456789ABCDEF') for j in range(6)])]
+                              "#"+''.join([random.choice('0123456789ABCDEF') for j in range(6)])] # element 0 for purpose FOOD and element 1 for DANGER 
             colony = Colony(x, y, r, [], color_colony=self.color_colonies[id_colony], id_colony=id_colony, markers_colors=markers_colors)
 
             for _ in range(n_ants_per_colony[id_colony]):
