@@ -7,13 +7,13 @@ class MarkerPurpose(enum.Enum):
 
 
 class Marker:
-    def __init__(self, x, y, purpose, directions, color):
+    def __init__(self, x, y, purpose, direction, color):
         self.x = x
         self.y = y
         self.purpose = purpose
         self.color = color
         if purpose == MarkerPurpose.FOOD:
-            self.directions = directions
+            self.direction = direction
 
     def portrayal_method(self):
         portrayal = {
@@ -21,6 +21,6 @@ class Marker:
             "Filled": "true",
             "Layer": 2,
             "Color": self.color,
-            "r": 2,
+            "r": 1,
         }
         return portrayal

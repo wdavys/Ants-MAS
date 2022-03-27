@@ -9,7 +9,6 @@ from mesa.datacollection import DataCollector
 from ant import Ant
 from marker import MarkerPurpose
 
-
 RADIUS_COLONY = 2
 
 class Obstacle:
@@ -33,8 +32,8 @@ class Food:
     def __init__(self, x, y, stock, color_food):
         self.x = x
         self.y = y
-        #self.r = r
         self.stock = stock
+        self.r = stock
         self.color_food = color_food
 
     def portrayal_method(self):
@@ -52,18 +51,20 @@ class Food:
 
 
 class Colony:
-    def __init__(self, x, y, r, ants, color_colony):
+    def __init__(self, x, y, r, ants, color_colony, id_colony, markers_colors):
         self.x = x
         self.y = y
         self.r = r
         self.ants = ants
         self.food_picked = 0
         self.color_colony = color_colony
+        self.id_colony = id_colony
+        self.markers_colors = markers_colors
     
     def portrayal_method(self):
         portrayal = {
             "Shape": "circle",
-            "Filled": "true",
+            "Filled": "false",
             "Layer": 1,
             "Color": self.color_colony,
             "r": self.r,
@@ -87,7 +88,7 @@ class Ground(Model):
         sight_distance=50,
     ):
         Model.__init__(self)
-        self.space = ContinuousSpace(600, 600, False)
+        self.space = ContinuousSpace(500, 500, False)
         self.schedule = RandomActivation(self)
         self.markers = (
             []
@@ -119,26 +120,28 @@ class Ground(Model):
             food = Food(x, y, stock, color_food=self.color_food)
             self.foods.append(food)
 
-        for idx_colony in range(n_colonies):
+        for id_colony in range(n_colonies):
             x, y  = random.random() * 500, random.random() * 500
-            r = RADIUS_COLONY * n_ants_per_colony[idx_colony]
+            r = RADIUS_COLONY * n_ants_per_colony[id_colony]
             while [o for o in self.obstacles if np.linalg.norm((o.x - x, o.y - y)) <= o.r + r] \
             or [f for f in self.foods if np.linalg.norm((f.x - x, f.y - y)) <= f.stock + r] \
             or [c for c in self.colonies if np.linalg.norm((c.x - x, c.y - y)) <= c.r + r]:
                 x, y = random.random() * 500, random.random() * 500
-            colony = Colony(x, y, r, [], color_colony=self.color_colonies[idx_colony])
+            markers_colors = ["#"+''.join([random.choice('0123456789ABCDEF') for j in range(6)]),
+                              "#"+''.join([random.choice('0123456789ABCDEF') for j in range(6)])]
+            colony = Colony(x, y, r, [], color_colony=self.color_colonies[id_colony], id_colony=id_colony, markers_colors=markers_colors)
 
-            for _ in range(n_ants_per_colony[idx_colony]):
+            for _ in range(n_ants_per_colony[id_colony]):
                 ant = Ant(
                     unique_id=int(uuid.uuid1()),
                     model=self,
-                    x=x + random.random() * 20,
-                    y=y + random.random() * 20,
+                    x=x + np.cos(random.random()*2*np.pi) * colony.r,
+                    y=y + np.sin(random.random()*2*np.pi) * colony.r,
                     speed=speed,
                     colony=colony,
                     angle=random.random() * 2 * np.pi,
                     sight_distance=sight_distance,
-                    color=self.color_ants[idx_colony],
+                    color=self.color_ants[id_colony],
                 )
                 self.schedule.add(ant)
                 colony.ants.append(ant)

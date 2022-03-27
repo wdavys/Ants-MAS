@@ -1,7 +1,10 @@
 from click import Tuple
 import numpy as np
 
-
+class Point:
+    def __init__(self, x: float, y: float):
+        self.x, self.y = x, y
+        
 def move(x: float, y: float, speed: float, angle: float) -> Tuple:
     return x + speed * np.cos(angle), y + speed * np.sin(angle)
 

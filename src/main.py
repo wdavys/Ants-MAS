@@ -10,9 +10,6 @@ from environnement import Ground
 from canvas import ContinuousCanvas
 
 
-MAX_ITERATION = 100
-
-
 # class Robot(Agent):  # La classe des agents
 #     def __init__(self, unique_id: int, model: Model, x, y, speed, sight_distance,
 #                         allow_smart_angle_chgt, allow_danger_markers, allow_info_markers,
@@ -286,9 +283,9 @@ def run_single_server():
         "Ants colonies",
         {
             "n_colonies": 2,
-            "n_ants_per_colony": [20, 10],
+            "n_ants_per_colony": [5, 3],
             "color_colonies": ["#00C8FF", "#52FF2B"],
-            "color_ants": ["#0000A6", "#008300"],
+            "color_ants": ["#00C8FF", "#52FF2B"],
             "color_food": ["#EAEA08"],
             "n_foods": mesa.visualization.ModularVisualization.UserSettableParameter(
                 "slider", "Number of foods", 3, 1, 5, 1
@@ -297,7 +294,7 @@ def run_single_server():
                 "slider", "Number of obstacles", 5, 2, 10, 1
             ),
             "speed": mesa.visualization.ModularVisualization.UserSettableParameter(
-                "slider", "Ant speed", 5, 5, 40, 5
+                "slider", "Ant speed", 15, 5, 40, 5
             ),
             "allow_danger_markers": True,
             "allow_info_markers": True,

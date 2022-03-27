@@ -1,16 +1,14 @@
 import random
-from matplotlib.font_manager import findSystemFonts
 import numpy as np
-from typing import Tuple, Union
+from typing import Tuple
 from mesa import Agent, Model
-
-from space import euclidean, move
+from space import Point, euclidean, move
 from marker import Marker, MarkerPurpose
 
 PROBA_CHGT_ANGLE = 0.3
-EPS = 0.5
-NBMAX_MARKERS = 100
-
+EPS = 0.9
+MAX_MARKERS = np.inf
+MAX_ITERATIONS = 100
 
 class Ant(Agent):
     def __init__(
@@ -49,7 +47,7 @@ class Ant(Agent):
         if foods_at_sight := [
             food
             for food in self.model.foods
-            if euclidean(food, self) < self.sight_distance
+            if euclidean(self, food) < self.sight_distance
         ]:
             nearest_food = foods_at_sight[
                 np.argmin([euclidean(self, food) for food in foods_at_sight])
@@ -71,9 +69,13 @@ class Ant(Agent):
      
     def go_to(self, destination) -> Tuple:
         dist_to_destination = euclidean(self, destination)
+        print(dist_to_destination)
+        if destination.__class__.__name__ in ["Food", "Colony"]:
+            print(dist_to_destination, destination.r)
         reached = False
-
-        if dist_to_destination < self.speed:
+        entering = dist_to_destination < destination.r if destination.__class__.__name__ in ["Food", "Colony"] else False
+    
+        if dist_to_destination < self.speed or entering:
             next_x, next_y = destination.x, destination.y
             next_angle = np.pi * random.random()*2-1
             reached = True
@@ -88,7 +90,7 @@ class Ant(Agent):
             return *self.next_pos(), next_angle, reached
     
     def go_back_to_colony(self) -> Tuple:
-        (next_x, next_y), next_angle, reached = self.go_to(self.colony)
+        next_x, next_y, next_angle, reached = self.go_to(self.colony)
 
         if reached:
             self.colony.food_picked += 1
@@ -96,18 +98,97 @@ class Ant(Agent):
 
         return next_x, next_y, next_angle
 
+    def will_crash_with(self, object):
+        '''
+            Check if the ant will crash with ``object``.
+            ``object`` is either an obstacle or another ant.
+        '''
+        pf = Point(*move(self.x, self.y, self.speed, self.angle))
+        p0pf = np.array([pf.x - self.x, pf.y - self.y])
+        p0pc = np.array([object.x - self.x, object.y - self.y])
+        norm_p0pf = euclidean(self, pf)
+        norm_p0pc = euclidean(self, object)
+        prod = p0pf @ p0pc
+        norm_p0ph = abs(prod/norm_p0pf)
+        radius = object.speed if isinstance(object, Ant) else object.r
+
+        if norm_p0ph>norm_p0pf:
+            dist = euclidean(pf, object)
+        elif prod<0:
+            dist=np.inf
+        #     dist = euclidean(p0, pc)
+        else:
+            dist = np.sqrt(norm_p0pc**2 - norm_p0ph**2)
+
+        return dist<=radius
+
+    def will_crash(self, objects):
+        '''
+            Check if the ant will crash with an element of ``objects``
+        '''
+        for obj in objects:
+            if self.will_crash_with(obj):
+                return True
+        return False
+    
     def step(self):
+        ants = [ant for ant in self.model.schedule.agents if self!=ant
+                            and euclidean(self, ant)<self.sight_distance]
+        obstacles = [obstacle for obstacle in self.model.obstacles
+                        if euclidean(self, obstacle)<self.sight_distance]
+
+        crash = self.model.space.out_of_bounds(self.next_pos())
+        if not crash:
+            crash = self.will_crash(ants) or self.will_crash(obstacles)
+        
+        iter = 0
+        initial_angle = self.angle
+        while crash and iter<MAX_ITERATIONS:
+            # ---- Priorité 2.1 ----
+            # We try to avoid any crash with either an ant or an obstacle
+            if iter%2:
+                self.angle = initial_angle + (iter//2+1)*random.random()*2*np.pi
+            else:
+                self.angle = initial_angle - (iter//2+1)*random.random()*2*np.pi
+
+            crash = self.model.space.out_of_bounds(self.next_pos())
+            if not crash:
+                crash = self.will_crash(ants) or self.will_crash(obstacles)
+            iter += 1
+
+        if crash:
+            # THe ant couldn't avoid a crash with 
+            iter = 0
+            while crash and iter<MAX_ITERATIONS:
+                # ---- Priorité 2.2 ----
+                # At least it 
+                if iter%2:
+                    self.angle = initial_angle + (iter//2+1)*random.random()*2*np.pi
+                else:
+                    self.angle = initial_angle - (iter//2+1)*random.random()*2*np.pi
+
+                crash = self.will_crash(obstacles)
+                iter += 1
+
+        if crash:
+            # Aucun angle ne permettant d'éviter un crash n'a été trouvé,
+            # on maintient l'angle initial et on espère qu'il n'y aura pas de crash
+
+            self.angle = initial_angle
+
+        next_x, next_y = self.next_pos()
+
         if self.is_carrying:
             # The ant is carrying food, it wants to go back to the colony
 
             next_x, next_y, next_angle = self.go_back_to_colony()
-            if len(self.model.markers) < NBMAX_MARKERS:
+            if len(self.model.markers) < MAX_MARKERS:
                 food_marker = Marker(
                     x=self.x,
                     y=self.y,
                     purpose=MarkerPurpose.FOOD,
-                    directions=next_angle,
-                    color=self.color,
+                    direction=next_angle,
+                    color=self.colony.markers_colors[0],
                 )
                 self.model.markers.append(food_marker)
                 self.ignore_markers_counts += self.ignore_steps_after_marker
@@ -121,12 +202,13 @@ class Ant(Agent):
                 next_x, next_y, next_angle, food_reached = self.go_to(nearest_food)
 
                 # The ant can already leave a food marker
-                if len(self.model.markers) < NBMAX_MARKERS:
+                if len(self.model.markers) < MAX_MARKERS:
                     food_marker = Marker(
                         x=self.x,
                         y=self.y,
                         purpose=MarkerPurpose.FOOD,
-                        directions=next_angle,
+                        direction=next_angle,
+                        color=self.colony.markers_colors[0]
                     )
                     self.model.markers.append(food_marker)
                     self.ignore_markers_counts += self.ignore_steps_after_marker
@@ -164,7 +246,7 @@ class Ant(Agent):
             "Shape": "circle",
             "Filled": "true",
             "Color": self.color,
-            "Layer": 2,
+            "Layer": 3,
             "r": 2
             #"Shape": "arrowHead"
             #"heading_x": np.cos(self.angle),
