@@ -9,11 +9,8 @@ from mesa.visualization.ModularVisualization import ModularServer
 from environnement import Ground
 from canvas import ContinuousCanvas
 
-########################
-###### CONSTANS ########
-########################
+
 MAX_ITERATION = 100
-PROBA_CHGT_ANGLE = 0.03
 
 
 # class Robot(Agent):  # La classe des agents
@@ -278,6 +275,7 @@ def run_single_server():
             {"Label": "Foods", "Color": "Orange"},
             {"Label": "Danger markers", "Color": "Red"},
             {"Label": "Food markers", "Color": "Green"},
+            {"Label": "Ants", "Color": "Grey"}
         ],
         data_collector_name="datacollector",
     )
@@ -287,12 +285,12 @@ def run_single_server():
         [ContinuousCanvas(), chart],
         "Ants colonies",
         {
-            "n_colony": 2,
-            "n_ants_per_colony": [10, 10],
+            "n_colonies": 2,
+            "n_ants_per_colony": [20, 10],
             "color_colonies": ["#00C8FF", "#52FF2B"],
             "color_ants": ["#0000A6", "#008300"],
             "color_food": ["#EAEA08"],
-            "n_food": mesa.visualization.ModularVisualization.UserSettableParameter(
+            "n_foods": mesa.visualization.ModularVisualization.UserSettableParameter(
                 "slider", "Number of foods", 3, 1, 5, 1
             ),
             "n_obstacles": mesa.visualization.ModularVisualization.UserSettableParameter(

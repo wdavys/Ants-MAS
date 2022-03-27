@@ -1,5 +1,4 @@
 import uuid
-import math
 import random
 import numpy as np
 from mesa import Model
@@ -11,7 +10,9 @@ from marker import MarkerPurpose
 from ant import Ant
 
 
-class Obstacle:  # Environnement: obstacle infranchissable
+RADIUS_COLONY = 2
+
+class Obstacle:
     def __init__(self, x, y, r):
         self.x = x
         self.y = y
@@ -29,10 +30,10 @@ class Obstacle:  # Environnement: obstacle infranchissable
 
 
 class Food:
-    def __init__(self, x, y, r, stock, color_food):
+    def __init__(self, x, y, stock, color_food):
         self.x = x
         self.y = y
-        self.r = r
+        #self.r = r
         self.stock = stock
         self.color_food = color_food
 
@@ -42,7 +43,7 @@ class Food:
             "Filled": "true",
             "Layer": 1,
             "Color": self.color_food,
-            "r": self.r * self.stock,
+            "r": self.stock,
         }
         return portrayal
 
@@ -51,48 +52,35 @@ class Food:
 
 
 class Colony:
-    def __init__(self, x, y, r, ants, color_colonie):
+    def __init__(self, x, y, r, ants, color_colony):
         self.x = x
         self.y = y
         self.r = r
         self.ants = ants
         self.food_picked = 0
-        self.color_colonie = color_colonie
+        self.color_colony = color_colony
     
     def portrayal_method(self):
         portrayal = {
             "Shape": "circle",
             "Filled": "true",
             "Layer": 1,
-            "Color": self.color_colonie,
-            "r": self.r * self.stock,
+            "Color": self.color_colony,
+            "r": self.r,
         }
         return portrayal
 
 
 class Ground(Model):
-    collector = DataCollector(
-        model_reporters={
-            "Foods": lambda model: len(model.foods),
-            "Danger markers": lambda model: len(
-                [m for m in model.markers if m.purpose == MarkerPurpose.DANGER]
-            ),
-            "Food markers": lambda model: len(
-                [m for m in model.markers if m.purpose == MarkerPurpose.FOOD]
-            ),
-        },
-        agent_reporters={},
-    )
-
     def __init__(
         self,
-        n_colony,
+        n_colonies,
         n_ants_per_colony,
         color_ants,
         color_colonies,
         color_food,
         n_obstacles,
-        n_food,
+        n_foods,
         speed,
         allow_info_markers=True,
         allow_danger_markers=True,
@@ -122,25 +110,26 @@ class Ground(Model):
                 )
             )
 
-        for _ in range(n_food):
+        for _ in range(n_foods):
             x, y = random.random() * 500, random.random() * 500
-            while [
-                o for o in self.obstacles if np.linalg.norm((o.x - x, o.y - y)) < o.r
-            ]:
+            stock = random.randint(10, 100)
+            while [o for o in self.obstacles if np.linalg.norm((o.x - x, o.y - y)) <= o.r + stock]:
                 x, y = random.random() * 500, random.random() * 500
-            food = Food(x=x, y=y, r=1, stock=random.randint(10, 100), color_food=self.color_food)
+                stock = random.randint(10, 100)
+            food = Food(x, y, stock, color_food=self.color_food)
             self.foods.append(food)
 
-        for idx_colony in range(n_colony):
-            colony = Colony(x, y, [], color_colonies[idx_colony], color_colonie=self.color_colonies[idx_colony])
-            x, y = random.random() * 500, random.random() * 500
-            while [
-                o for o in self.obstacles if np.linalg.norm((o.x - x, o.y - y)) < o.r
-            ] or [f for f in self.foods if np.linalg.norm((f.x - x, f.y - y)) < f.r]:
+        for idx_colony in range(n_colonies):
+            x, y  = random.random() * 500, random.random() * 500
+            r = RADIUS_COLONY * n_ants_per_colony[idx_colony]
+            while [o for o in self.obstacles if np.linalg.norm((o.x - x, o.y - y)) <= o.r + r] \
+            or [f for f in self.foods if np.linalg.norm((f.x - x, f.y - y)) <= f.stock + r] \
+            or [c for c in self.colonies if np.linalg.norm((c.x - x, c.y - y)) <= c.r + r]:
                 x, y = random.random() * 500, random.random() * 500
+            colony = Colony(x, y, r, [], color_colony=self.color_colonies[idx_colony])
 
-            ants = [
-                Ant(
+            for _ in range(n_ants_per_colony[idx_colony]):
+                ant = Ant(
                     unique_id=int(uuid.uuid1()),
                     model=self,
                     x=x + random.random() * 20,
@@ -151,17 +140,28 @@ class Ground(Model):
                     sight_distance=sight_distance,
                     color=self.color_ants[idx_colony],
                 )
-                for _ in range(n_ants_per_colony[idx_colony])
-            ]
-            colony.ants = ants
-            self.colonies.append(colony)
-            for ant in ants:
                 self.schedule.add(ant)
-
-        self.datacollector = self.collector
+                colony.ants.append(ant)
+      
+            self.colonies.append(colony)
+            
+        self.datacollector = DataCollector(
+            model_reporters={
+                "Ants": lambda model: len(model.colonies[0].ants),
+                "Foods": lambda model: len(model.foods),
+                "Danger markers": lambda model: len(
+                    [m for m in model.markers if m.purpose == MarkerPurpose.DANGER]
+                ),
+                "Food markers": lambda model: len(
+                    [m for m in model.markers if m.purpose == MarkerPurpose.FOOD]
+                ),
+            },
+            agent_reporters={},
+        )
 
     def step(self):
-        self.datacollector.collect(self)
         self.schedule.step()
-        if not self.foods:
+        self.datacollector.collect(self)
+        
+        if not self.foods: #self.schedule.steps >= 100:
             self.running = False

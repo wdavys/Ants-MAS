@@ -23,6 +23,7 @@ class ContinuousCanvas(VisualizationElement):
 
     def render(self, model):
         representation = defaultdict(list)
+        
         for obj in model.schedule.agents:
             portrayal = self.portrayal_method(obj)
             if portrayal:
@@ -33,6 +34,18 @@ class ContinuousCanvas(VisualizationElement):
                     model.space.y_max - model.space.y_min
                 )
             representation[portrayal["Layer"]].append(portrayal)
+            
+        for obj in model.colonies:
+            portrayal = self.portrayal_method(obj)
+            if portrayal:
+                portrayal["x"] = (obj.x - model.space.x_min) / (
+                    model.space.x_max - model.space.x_min
+                )
+                portrayal["y"] = (obj.y - model.space.y_min) / (
+                    model.space.y_max - model.space.y_min
+                )
+            representation[portrayal["Layer"]].append(portrayal)
+        
         for obj in model.foods:
             portrayal = self.portrayal_method(obj)
             if portrayal:
@@ -43,6 +56,7 @@ class ContinuousCanvas(VisualizationElement):
                     model.space.y_max - model.space.y_min
                 )
             representation[portrayal["Layer"]].append(portrayal)
+        
         for obj in model.markers:
             portrayal = self.portrayal_method(obj)
             if portrayal:
@@ -53,6 +67,7 @@ class ContinuousCanvas(VisualizationElement):
                     model.space.y_max - model.space.y_min
                 )
             representation[portrayal["Layer"]].append(portrayal)
+        
         for obj in model.obstacles:
             portrayal = self.portrayal_method(obj)
             if portrayal:

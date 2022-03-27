@@ -1,19 +1,19 @@
 import math
 import uuid
-import numpy as np
 
 from src import ant, space, environnement
 
 MODEL = environnement.Ground(
     n_colony=2,
-    n_ants_per_colony=2,
+    n_ants_per_colony=[2,2],
     color_ants="black",
     color_colonies="green",
+    color_food="blue",
     n_obstacles=5,
     n_food=2,
     speed=20,
 )
-COLONY = environnement.Colony(x=0, y=0, r=10, ants=10)
+COLONY = environnement.Colony(x=0, y=0, r=10, ants=10, color_colony="purple")
 
 
 def test_create_ant():
