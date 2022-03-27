@@ -13,6 +13,7 @@ class Marker:
         self.colony_id = colony_id
         self.purpose = purpose
         self.color = color
+        self.lifetime = 10
         if purpose == MarkerPurpose.FOOD:
             self.direction = direction
     

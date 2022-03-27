@@ -175,6 +175,12 @@ class Ground(Model):
 
     def step(self):
         self.schedule.step()
+        for keys in self.markers_dict.keys():
+            for mk in self.markers_dict[keys]:
+                if mk.lifetime == 0:
+                    self.markers_dict[keys].remove(mk)
+                else :
+                    mk.lifetime -= 1
         self.datacollector.collect(self)
         
         if not self.foods: #self.schedule.steps >= 100:
