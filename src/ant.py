@@ -55,22 +55,35 @@ class Ant(Agent):
 
             return nearest_food
 
-    def look_for_food_marker(self):
-        if food_markers_at_sight := [
-            marker
-            for marker in self.model.markers
-            if marker.purpose == MarkerPurpose.FOOD
-        ]:
-            nearest_food_marker = food_markers_at_sight[
-                np.argmin([euclidean(self, marker) for marker in food_markers_at_sight])
-            ]
+    def look_for_food_marker(self, back_to_colony=False):
+        if back_to_colony:
+            if food_markers_at_sight := [
+                marker
+                for marker in self.model.markers
+                if filter(lambda el: el.color == self.colony.markers_colors[0], self.model.markers) and marker.purpose == MarkerPurpose.FOOD and \
+                    np.array([self.x-self.colony.x, self.y-self.colony.y]) @ np.array([self.x-marker.x, self.y-marker.y])> 0
+            ]:
+                nearest_food_marker = food_markers_at_sight[
+                    np.argmin([euclidean(self, marker) for marker in food_markers_at_sight])
+                ]
+                
+                return nearest_food_marker
             
-            return nearest_food_marker
+        else:
+            if food_markers_at_sight := [
+                marker
+                for marker in self.model.markers
+                if filter(lambda el: el.color == self.colony.markers_colors[0], self.model.markers) and marker.purpose == MarkerPurpose.FOOD
+            ]:
+                nearest_food_marker = food_markers_at_sight[
+                    np.argmin([euclidean(self, marker) for marker in food_markers_at_sight])
+                ]
+                
+                return nearest_food_marker
      
     def go_to(self, destination) -> Tuple:
         dist_to_destination = euclidean(self, destination)
-        print(dist_to_destination)
-        if destination.__class__.__name__ in ["Food", "Colony"]:
+        if destination.__class__.__name__ in ["Food"]:
             print(dist_to_destination, destination.r)
         reached = False
         entering = dist_to_destination < destination.r if destination.__class__.__name__ in ["Food", "Colony"] else False
@@ -81,8 +94,6 @@ class Ant(Agent):
             reached = True
             return next_x, next_y, next_angle, reached
 
-        #elif (nearest_food_marker := self.look_for_food_marker()) is not None:
-            
         else:
             next_angle = np.arccos((destination.x - self.x) / dist_to_destination)
             if destination.y < self.y:
@@ -142,7 +153,7 @@ class Ant(Agent):
             crash = self.will_crash(ants) or self.will_crash(obstacles)
         
         iter = 0
-        initial_angle = self.angle
+        next_angle = initial_angle = self.angle
         while crash and iter<MAX_ITERATIONS:
             # ---- Priorité 2.1 ----
             # We try to avoid any crash with either an ant or an obstacle
@@ -180,18 +191,25 @@ class Ant(Agent):
 
         if self.is_carrying:
             # The ant is carrying food, it wants to go back to the colony
+            if self.is_on_food_marker:
+                if self.ignore_markers_counts == 0 and \
+                        (nearest_food_marker := self.look_for_food_marker(True)) is not None and random.random() < EPS:
+                        # The ant is aware of markers and saw one
 
-            next_x, next_y, next_angle = self.go_back_to_colony()
-            if len(self.model.markers) < MAX_MARKERS:
-                food_marker = Marker(
-                    x=self.x,
-                    y=self.y,
-                    purpose=MarkerPurpose.FOOD,
-                    direction=next_angle,
-                    color=self.colony.markers_colors[0],
-                )
-                self.model.markers.append(food_marker)
-                self.ignore_markers_counts += self.ignore_steps_after_marker
+                    next_x, next_y, next_angle, marker_reached = self.go_to(nearest_food_marker)
+            
+            else:
+                next_x, next_y, next_angle = self.go_back_to_colony()
+                if len(self.model.markers) < MAX_MARKERS:
+                    food_marker = Marker(
+                        x=self.x,
+                        y=self.y,
+                        purpose=MarkerPurpose.FOOD,
+                        direction=next_angle,
+                        color=self.colony.markers_colors[0],
+                    )
+                    self.model.markers.append(food_marker)
+                    self.ignore_markers_counts += self.ignore_steps_after_marker
 
         else:
             # The ant is looking for either food or markers
