@@ -58,7 +58,7 @@ class Ant(Agent):
     def look_for_food_marker(self):
         if food_markers_at_sight := [
             marker
-            for marker in self.model.markers
+            for marker in self.model.markers_dict[str(self.colony.id_colony)]
             if marker.purpose == MarkerPurpose.FOOD
         ]:
             nearest_food_marker = food_markers_at_sight[
@@ -182,15 +182,16 @@ class Ant(Agent):
             # The ant is carrying food, it wants to go back to the colony
 
             next_x, next_y, next_angle = self.go_back_to_colony()
-            if len(self.model.markers) < MAX_MARKERS:
+            if len(self.model.markers_dict[str(self.colony.id_colony)]) < MAX_MARKERS:
                 food_marker = Marker(
                     x=self.x,
                     y=self.y,
+                    colony_id=self.colony.id_colony,
                     purpose=MarkerPurpose.FOOD,
                     direction=next_angle,
                     color=self.colony.markers_colors[0],
                 )
-                self.model.markers.append(food_marker)
+                self.model.markers_dict[str(self.colony.id_colony)].append(food_marker)
                 self.ignore_markers_counts += self.ignore_steps_after_marker
 
         else:
@@ -202,15 +203,16 @@ class Ant(Agent):
                 next_x, next_y, next_angle, food_reached = self.go_to(nearest_food)
 
                 # The ant can already leave a food marker
-                if len(self.model.markers) < MAX_MARKERS:
+                if len(self.model.markers_dict[str(self.colony.id_colony)]) < MAX_MARKERS:
                     food_marker = Marker(
                         x=self.x,
                         y=self.y,
+                        colony_id=self.colony.id_colony,
                         purpose=MarkerPurpose.FOOD,
                         direction=next_angle,
                         color=self.colony.markers_colors[0]
                     )
-                    self.model.markers.append(food_marker)
+                    self.model.markers_dict[str(self.colony.id_colony)].append(food_marker)
                     self.ignore_markers_counts += self.ignore_steps_after_marker
 
                 if food_reached:
