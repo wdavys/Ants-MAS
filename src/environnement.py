@@ -90,9 +90,9 @@ class Ground(Model):
         Model.__init__(self)
         self.space = ContinuousSpace(500, 500, False)
         self.schedule = RandomActivation(self)
-        self.markers = (
-            []
-        )  # Access list of markers from robot through self.model.markers (both read and write)
+
+        self.markers_dict = {str(id): [] for id in range(n_colonies)}
+            # Access list of markers from robot through self.model.markers (both read and write)
         self.obstacles = (
             []
         )  # Access list of obstacles from robot through self.model.obstacles
@@ -152,11 +152,11 @@ class Ground(Model):
             model_reporters={
                 "Ants": lambda model: len(model.colonies[0].ants),
                 "Foods": lambda model: len(model.foods),
-                "Danger markers": lambda model: len(
-                    [m for m in model.markers if m.purpose == MarkerPurpose.DANGER]
+                "Danger markers 0": lambda model: len(
+                    [m for m in model.markers_dict['0'] if m.purpose == MarkerPurpose.DANGER]
                 ),
-                "Food markers": lambda model: len(
-                    [m for m in model.markers if m.purpose == MarkerPurpose.FOOD]
+                "Food markers 0": lambda model: len(
+                    [m for m in model.markers_dict['0'] if m.purpose == MarkerPurpose.FOOD]
                 ),
             },
             agent_reporters={},

@@ -58,9 +58,8 @@ class Ant(Agent):
     def look_for_food_marker(self, back_to_colony=False):
         if back_to_colony:
             if food_markers_at_sight := [
-                marker
-                for marker in self.model.markers
-                if filter(lambda el: el.color == self.colony.markers_colors[0], self.model.markers) and marker.purpose == MarkerPurpose.FOOD and \
+                marker for marker in self.model.markers_dict[str(self.colony.id_colony)]
+                if marker.purpose == MarkerPurpose.FOOD and \
                     np.array([self.x-self.colony.x, self.y-self.colony.y]) @ np.array([self.x-marker.x, self.y-marker.y])> 0
             ]:
                 nearest_food_marker = food_markers_at_sight[
@@ -71,9 +70,8 @@ class Ant(Agent):
             
         else:
             if food_markers_at_sight := [
-                marker
-                for marker in self.model.markers
-                if filter(lambda el: el.color == self.colony.markers_colors[0], self.model.markers) and marker.purpose == MarkerPurpose.FOOD
+                marker for marker in self.model.markers_dict[str(self.colony.id_colony)]
+                if marker.purpose == MarkerPurpose.FOOD
             ]:
                 nearest_food_marker = food_markers_at_sight[
                     np.argmin([euclidean(self, marker) for marker in food_markers_at_sight])
@@ -200,16 +198,30 @@ class Ant(Agent):
             
             else:
                 next_x, next_y, next_angle = self.go_back_to_colony()
-                if len(self.model.markers) < MAX_MARKERS:
+                if len(self.model.markers_dict[str(self.colony.id_colony)]) < MAX_MARKERS:
                     food_marker = Marker(
                         x=self.x,
                         y=self.y,
+                        colony_id=self.colony.id_colony,
                         purpose=MarkerPurpose.FOOD,
                         direction=next_angle,
                         color=self.colony.markers_colors[0],
                     )
-                    self.model.markers.append(food_marker)
+                    self.model.markers_dict[str(self.colony.id_colony)].append(food_marker)
                     self.ignore_markers_counts += self.ignore_steps_after_marker
+            next_x, next_y, next_angle = self.go_back_to_colony()
+            
+            if len(self.model.markers_dict[str(self.colony.id_colony)]) < MAX_MARKERS:
+                food_marker = Marker(
+                    x=self.x,
+                    y=self.y,
+                    colony_id=self.colony.id_colony,
+                    purpose=MarkerPurpose.FOOD,
+                    direction=next_angle,
+                    color=self.colony.markers_colors[0],
+                )
+                self.model.markers_dict[str(self.colony.id_colony)].append(food_marker)
+                self.ignore_markers_counts += self.ignore_steps_after_marker
 
         else:
             # The ant is looking for either food or markers
@@ -220,15 +232,16 @@ class Ant(Agent):
                 next_x, next_y, next_angle, food_reached = self.go_to(nearest_food)
 
                 # The ant can already leave a food marker
-                if len(self.model.markers) < MAX_MARKERS:
+                if len(self.model.markers_dict[str(self.colony.id_colony)]) < MAX_MARKERS:
                     food_marker = Marker(
                         x=self.x,
                         y=self.y,
+                        colony_id=self.colony.id_colony,
                         purpose=MarkerPurpose.FOOD,
                         direction=next_angle,
                         color=self.colony.markers_colors[0]
                     )
-                    self.model.markers.append(food_marker)
+                    self.model.markers_dict[str(self.colony.id_colony)].append(food_marker)
                     self.ignore_markers_counts += self.ignore_steps_after_marker
 
                 if food_reached:

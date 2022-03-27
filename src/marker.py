@@ -7,14 +7,15 @@ class MarkerPurpose(enum.Enum):
 
 
 class Marker:
-    def __init__(self, x, y, purpose, direction, color):
+    def __init__(self, x, y, colony_id, purpose, direction, color):
         self.x = x
         self.y = y
+        self.colony_id = colony_id
         self.purpose = purpose
         self.color = color
         if purpose == MarkerPurpose.FOOD:
             self.direction = direction
-
+    
     def portrayal_method(self):
         portrayal = {
             "Shape": "circle",
