@@ -1,4 +1,4 @@
-from typing import List
+import random
 import mesa
 import argparse
 import mesa.space
@@ -10,86 +10,6 @@ from environnement import Ground
 from canvas import ContinuousCanvas
 
 
-# class Robot(Agent):  # La classe des agents
-#     def __init__(self, unique_id: int, model: Model, x, y, speed, sight_distance,
-#                         allow_smart_angle_chgt, allow_danger_markers, allow_info_markers,
-#                         angle=0.0, chgt_angle_step=0.01, maxiter_chgt_angle=2000, knn=2):
-#         super().__init__(unique_id, model)
-#         self.x = x
-#         self.y = y
-#         self.speed = speed
-#         self.quicksand_speed = speed/2
-#         self.sight_distance = sight_distance
-#         self.angle = angle
-#         self.counter = 0
-#         self.chgt_angle_step = chgt_angle_step
-#         self.maxiter_chgt_angle=maxiter_chgt_angle
-#         self.knn = knn
-#         self.allow_smart_angle_chgt = allow_smart_angle_chgt
-#         self.allow_danger_markers = allow_danger_markers
-#         self.allow_info_markers = allow_info_markers
-#
-#     def next_pos(self):
-#         next_x = self.x + self.speed * math.cos(self.angle)
-#         next_y = self.y + self.speed * math.sin(self.angle)
-#         return next_x, next_y
-#
-#     def go_to(self, dest_x, dest_y):
-#         x = self.x
-#         y = self.y
-#         speed = self.speed
-#
-#         if np.linalg.norm((x - dest_x, y - dest_y)) < speed:
-#             return (dest_x, dest_y), 2 * math.pi * random.random()
-#         else:
-#             angle = math.acos((dest_x - x)/np.linalg.norm((x - dest_x, y - dest_y)))
-#             if dest_y < y:
-#                 angle = - angle
-#             return move(x, y, speed, angle), angle
-#
-#     def will_crash_with(self, object):
-#         '''
-#             Check if the agent will crash with the object.
-#             object can be either an obstacle or another robot.
-#         '''
-#         x_0, y_0 = self.x, self.y
-#         x_f, y_f = move(x_0, y_0, self.speed, self.angle)
-#         x_c, y_c = object.x, object.y
-#         p0 = np.array([x_0, y_0])
-#         pf = np.array([x_f, y_f])
-#         pc = np.array([x_c, y_c])
-#         p0pf = pf - p0
-#         p0pc = pc - p0
-#         norm_p0pf = euclidean(p0, pf)
-#         norm_p0pc = euclidean(p0, pc)
-#         prod = p0pf.dot(p0pc)
-#         norm_p0ph = abs(prod/norm_p0pf)
-#         radius = object.speed if object.__class__.__name__=='Robot' else object.r
-#
-#         if norm_p0ph>norm_p0pf:
-#             dist = euclidean(pf, pc)
-#         elif prod<0 :
-#             dist=np.inf
-#         #     dist = euclidean(p0, pc)
-#         else:
-#             dist = np.sqrt(norm_p0pc**2 - norm_p0ph**2)
-#
-#         return dist<=radius
-#
-#
-#
-#     def will_crash_at_least_once(self, objects):
-#         '''
-#             Check if the agent will have a crash with an object in objects
-#         '''
-#
-#         for obj in objects:
-#             at_least_1_crash = self.will_crash_with(obj)
-#             if at_least_1_crash:
-#                 return True
-#         return False
-#
-#
 #     def step(self):
 #         self.counter+=1
 #
@@ -193,112 +113,52 @@ from canvas import ContinuousCanvas
 #                     self.model.markers.append(Marker(self.x, self.y,
 #                                                         MarkerPurpose.FOOD, self.angle))
 #                     self.counter = 0
-#
-#
-#         #################################################################
-#         ############## Priorité 2 : Gestion de l'évitement ##############
-#         #################################################################
-#
-#         robots = [robot for robot in self.model.schedule.agents if self!=robot
-#                             and euclidean((robot.x, robot.y), (self.x, self.y))<self.sight_distance]
-#         obstacles = [obstacle for obstacle in self.model.obstacles
-#                         if euclidean((obstacle.x, obstacle.y), (self.x, self.y))<self.sight_distance]
-#
-#
-#         next_x, next_y = self.next_pos()
-#         crash_at_least_once = self.model.space.out_of_bounds((next_x, next_y))
-#         if not crash_at_least_once:
-#             crash_at_least_once = self.will_crash_at_least_once(robots)
-#         if not crash_at_least_once:
-#             crash_at_least_once = self.will_crash_at_least_once(obstacles)
-#
-#         iter = 0
-#         max_iter = self.maxiter_chgt_angle
-#         initial_angle = self.angle
-#         while crash_at_least_once and iter<max_iter:
-#             # ---- Priorité 2.1 ----
-#             # On essaie de trouver un angle qui permette d'éviter le crash contre
-#             # un autre agent et contre un obstacle
-#             if iter%2:
-#                 self.angle = initial_angle + (iter//2+1)*self.chgt_angle_step
-#             else:
-#                 self.angle = initial_angle - (iter//2+1)*self.chgt_angle_step
-#             next_x, next_y = self.next_pos()
-#             crash_at_least_once = self.model.space.out_of_bounds((next_x, next_y))
-#             if not crash_at_least_once:
-#                 crash_at_least_once = self.will_crash_at_least_once(robots)
-#             if not crash_at_least_once:
-#                 crash_at_least_once = self.will_crash_at_least_once(obstacles)
-#             iter += 1
-#
-#
-#         if crash_at_least_once :
-#             # Aucun angle ne permettant d'éviter le crash contre un autre agent
-#             # et contre un obstacle a été trouvé
-#             iter = 0
-#             while crash_at_least_once and iter<max_iter:
-#                 # ---- Priorité 2.2 ----
-#                 # On essaie au moins de trouver un angle qui permette d'éviter
-#                 # le crash contre un autre agent (tant pis pour le crash avec un obstacle)
-#                 if iter%2:
-#                     self.angle = initial_angle + (iter//2+1)*self.chgt_angle_step
-#                 else:
-#                     self.angle = initial_angle - (iter//2+1)*self.chgt_angle_step
-#
-#                 crash_at_least_once = self.will_crash_at_least_once(robots)
-#                 iter += 1
-#
-#
-#         if crash_at_least_once :
-#             # Aucun angle ne permettant d'éviter un crash n'a été trouvé,
-#             # on maintient l'angle initial et on espère qu'il n'y aura pas de crash
-#
-#             # => Destruction des robots en cas de crash ?
-#             self.angle = initial_angle
-#
-#         self.x, self.y = self.next_pos()
-#
-#         pass
-#
-#     def portrayal_method(self):
-#         portrayal = {"Shape": "arrowHead", "s": 1, "Filled": "true", "Color": "Red", "Layer": 3, 'x': self.x,
-#                      'y': self.y, "angle": self.angle}
-#         return portrayal
+
 
 
 def run_single_server():
+    n_colonies = 2
+    n_ants_per_colony = [10, 5]
+    colonies_colors = []
+    markers_colors = []
+    series = []
+    for i in range(n_colonies):
+        colonies_colors.append("#"+''.join(random.choices('0123456789ABCDEF', k=6)))
+        markers_colors.append(["#"+''.join(random.choices('0123456789ABCDEF', k=6)),
+                              "#"+''.join(random.choices('0123456789ABCDEF', k=6))]) # element 0 for purpose FOOD and element 1 for DANGER
+        #series.append({"Label": "Ants " + str(i), "Color": colonies_colors[i]})
+        series.append({"Label": "Food picked " + str(i), "Color": colonies_colors[i]})
+              
     chart = ChartModule(
-        [
-            {"Label": "Foods", "Color": "Orange"},
-            {"Label": "Danger markers", "Color": "Red"},
-            {"Label": "Food markers", "Color": "Green"},
-            {"Label": "Ants", "Color": "Grey"}
-        ],
+        series,
         data_collector_name="datacollector",
     )
+    
+    model_params = {
+        "n_colonies": n_colonies,
+        "n_ants_per_colony": n_ants_per_colony,
+        "color_colonies": colonies_colors,
+        "color_ants": colonies_colors,
+        "color_food": ["#EAEA08"],
+        "n_foods": mesa.visualization.ModularVisualization.UserSettableParameter(
+            "slider", "Number of foods", 3, 1, 5, 1
+        ),
+        "n_obstacles": mesa.visualization.ModularVisualization.UserSettableParameter(
+            "slider", "Number of obstacles", 5, 2, 10, 1
+        ),
+        "markers_colors": markers_colors,
+        "speed": mesa.visualization.ModularVisualization.UserSettableParameter(
+            "slider", "Ant speed", 15, 5, 40, 5
+        ),
+        "allow_danger_markers": True,
+        "allow_info_markers": True
+    }
 
     server = ModularServer(
         Ground,
         [ContinuousCanvas(), chart],
         "Ants colonies",
-        {
-            "n_colonies": 2,
-            "n_ants_per_colony": [5, 3],
-            "color_colonies": ["#00C8FF", "#52FF2B"],
-            "color_ants": ["#00C8FF", "#52FF2B"],
-            "color_food": ["#EAEA08"],
-            "n_foods": mesa.visualization.ModularVisualization.UserSettableParameter(
-                "slider", "Number of foods", 3, 1, 5, 1
-            ),
-            "n_obstacles": mesa.visualization.ModularVisualization.UserSettableParameter(
-                "slider", "Number of obstacles", 5, 2, 10, 1
-            ),
-            "speed": mesa.visualization.ModularVisualization.UserSettableParameter(
-                "slider", "Ant speed", 15, 5, 40, 5
-            ),
-            "allow_danger_markers": True,
-            "allow_info_markers": True,
-        },
+        model_params
     )
     server.port = 8521
     server.launch()

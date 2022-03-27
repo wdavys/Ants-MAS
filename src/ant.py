@@ -6,7 +6,7 @@ from space import Point, euclidean, move
 from marker import Marker, MarkerPurpose
 
 PROBA_CHGT_ANGLE = 0.3
-EPS = 0.9
+EPS = 0.5
 MAX_MARKERS = np.inf
 MAX_ITERATIONS = 100
 
@@ -81,8 +81,6 @@ class Ant(Agent):
      
     def go_to(self, destination) -> Tuple:
         dist_to_destination = euclidean(self, destination)
-        if destination.__class__.__name__ in ["Food"]:
-            print(dist_to_destination, destination.r)
         reached = False
         entering = dist_to_destination < destination.r if destination.__class__.__name__ in ["Food", "Colony"] else False
     
@@ -91,7 +89,7 @@ class Ant(Agent):
             next_angle = np.pi * random.random()*2-1
             reached = True
             return next_x, next_y, next_angle, reached
-
+        
         else:
             next_angle = np.arccos((destination.x - self.x) / dist_to_destination)
             if destination.y < self.y:
@@ -151,7 +149,7 @@ class Ant(Agent):
             crash = self.will_crash(ants) or self.will_crash(obstacles)
         
         iter = 0
-        next_angle = initial_angle = self.angle
+        initial_angle = self.angle
         while crash and iter<MAX_ITERATIONS:
             # ---- Priorité 2.1 ----
             # We try to avoid any crash with either an ant or an obstacle
@@ -185,30 +183,30 @@ class Ant(Agent):
 
             self.angle = initial_angle
 
-        next_x, next_y = self.next_pos()
+        next_x, next_y, next_angle = *self.next_pos(), self.angle
 
         if self.is_carrying:
             # The ant is carrying food, it wants to go back to the colony
-            if self.is_on_food_marker:
-                if self.ignore_markers_counts == 0 and \
-                        (nearest_food_marker := self.look_for_food_marker(True)) is not None and random.random() < EPS:
-                        # The ant is aware of markers and saw one
+            # if False:#self.is_on_food_marker:
+            #     if self.ignore_markers_counts == 0 and \
+            #             (nearest_food_marker := self.look_for_food_marker(False)) is not None and random.random() < EPS:
+            #             # The ant is aware of markers and saw one
 
-                    next_x, next_y, next_angle, marker_reached = self.go_to(nearest_food_marker)
+            #         next_x, next_y, next_angle, marker_reached = self.go_to(nearest_food_marker)
             
-            else:
-                next_x, next_y, next_angle = self.go_back_to_colony()
-                if len(self.model.markers_dict[str(self.colony.id_colony)]) < MAX_MARKERS:
-                    food_marker = Marker(
-                        x=self.x,
-                        y=self.y,
-                        colony_id=self.colony.id_colony,
-                        purpose=MarkerPurpose.FOOD,
-                        direction=next_angle,
-                        color=self.colony.markers_colors[0],
-                    )
-                    self.model.markers_dict[str(self.colony.id_colony)].append(food_marker)
-                    self.ignore_markers_counts += self.ignore_steps_after_marker
+            # else:
+                # next_x, next_y, next_angle = self.go_back_to_colony()
+                # if len(self.model.markers_dict[str(self.colony.id_colony)]) < MAX_MARKERS:
+                #     food_marker = Marker(
+                #         x=self.x,
+                #         y=self.y,
+                #         colony_id=self.colony.id_colony,
+                #         purpose=MarkerPurpose.FOOD,
+                #         direction=next_angle,
+                #         color=self.colony.markers_colors[0],
+                #     )
+                #     self.model.markers_dict[str(self.colony.id_colony)].append(food_marker)
+                #     self.ignore_markers_counts += self.ignore_steps_after_marker
             next_x, next_y, next_angle = self.go_back_to_colony()
             
             if len(self.model.markers_dict[str(self.colony.id_colony)]) < MAX_MARKERS:

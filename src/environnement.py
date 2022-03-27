@@ -82,6 +82,7 @@ class Ground(Model):
         color_food,
         n_obstacles,
         n_foods,
+        markers_colors,
         speed,
         allow_info_markers=True,
         allow_danger_markers=True,
@@ -127,8 +128,6 @@ class Ground(Model):
             or [f for f in self.foods if np.linalg.norm((f.x - x, f.y - y)) <= f.stock + r] \
             or [c for c in self.colonies if np.linalg.norm((c.x - x, c.y - y)) <= c.r + r]:
                 x, y = random.random() * 500, random.random() * 500
-            markers_colors = ["#"+''.join([random.choice('0123456789ABCDEF') for j in range(6)]),
-                              "#"+''.join([random.choice('0123456789ABCDEF') for j in range(6)])] # element 0 for purpose FOOD and element 1 for DANGER 
             colony = Colony(x, y, r, [], color_colony=self.color_colonies[id_colony], id_colony=id_colony, markers_colors=markers_colors)
 
             for _ in range(n_ants_per_colony[id_colony]):
@@ -147,18 +146,30 @@ class Ground(Model):
                 colony.ants.append(ant)
       
             self.colonies.append(colony)
-            
+        
+        model_reporters={}
+        #     "Foods Picked": lambda model: model.colonies[0].food_picked,
+        #     "Ants": lambda model: model.
+        #     "Foods Picked": lambda model: len(model.foods),
+        #     "Danger markers 0": lambda model: len(
+        #         [m for m in model.markers_dict['0'] if m.purpose == MarkerPurpose.DANGER]
+        #     ),
+        #     "Food markers 0": lambda model: len(
+        #         [m for m in model.markers_dict['0'] if m.purpose == MarkerPurpose.FOOD]
+        #     ),
+        # },
+        
+        model_reporters["Food picked 0"]=lambda model: model.colonies[0].food_picked
+        model_reporters["Food picked 1"]=lambda model: model.colonies[1].food_picked
+        
+        # Automatisation j'arrive pas, en effet quand je décommande, les deux graphes affichent la même valeur.... (Davy)
+        # Si quelqu'un a une idée je suis preneur
+        #for i in range(n_colonies):
+        #    model_reporters["Food picked " + str(i)]=lambda model: model.colonies[i].food_picked
+        #    model_reporters["Ants " + str(_)]=lambda model: len(model.colonies[_].ants) 
+        
         self.datacollector = DataCollector(
-            model_reporters={
-                "Ants": lambda model: len(model.colonies[0].ants),
-                "Foods": lambda model: len(model.foods),
-                "Danger markers 0": lambda model: len(
-                    [m for m in model.markers_dict['0'] if m.purpose == MarkerPurpose.DANGER]
-                ),
-                "Food markers 0": lambda model: len(
-                    [m for m in model.markers_dict['0'] if m.purpose == MarkerPurpose.FOOD]
-                ),
-            },
+            model_reporters=model_reporters,
             agent_reporters={},
         )
 
