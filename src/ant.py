@@ -88,7 +88,7 @@ class Ant(Agent):
             return *self.next_pos(), next_angle, reached
     
     def go_back_to_colony(self) -> Tuple:
-        next_x, next_y, next_angle, reached = self.go_to(self.colony)
+        (next_x, next_y), next_angle, reached = self.go_to(self.colony)
 
         if reached:
             self.colony.food_picked += 1
@@ -107,6 +107,7 @@ class Ant(Agent):
                     y=self.y,
                     purpose=MarkerPurpose.FOOD,
                     directions=next_angle,
+                    color=self.color,
                 )
                 self.model.markers.append(food_marker)
                 self.ignore_markers_counts += self.ignore_steps_after_marker

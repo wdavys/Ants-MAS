@@ -6,8 +6,8 @@ from mesa.space import ContinuousSpace
 from mesa.time import RandomActivation
 from mesa.datacollection import DataCollector
 
-from marker import MarkerPurpose
 from ant import Ant
+from marker import MarkerPurpose
 
 
 RADIUS_COLONY = 2
