@@ -1,6 +1,6 @@
 import enum
 
-
+LIFETIME = 20
 class MarkerPurpose(enum.Enum):
     DANGER = enum.auto()
     FOOD = enum.auto()
@@ -13,7 +13,7 @@ class Marker:
         self.colony_id = colony_id
         self.purpose = purpose
         self.color = color
-        self.lifetime = 10
+        self.lifetime = LIFETIME
         if purpose == MarkerPurpose.FOOD:
             self.direction = direction
     

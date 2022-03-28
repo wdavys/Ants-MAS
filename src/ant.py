@@ -215,7 +215,7 @@ class Ant(Agent):
                     colony_id=self.colony.id_colony,
                     purpose=MarkerPurpose.FOOD,
                     direction=next_angle,
-                    color=self.colony.markers_colors[0],
+                    color=self.colony.markers_colors[self.colony.id_colony][0],
                 )
                 self.model.markers_dict[str(self.colony.id_colony)].append(food_marker)
                 self.ignore_markers_counts += self.ignore_steps_after_marker
@@ -236,7 +236,7 @@ class Ant(Agent):
                         colony_id=self.colony.id_colony,
                         purpose=MarkerPurpose.FOOD,
                         direction=next_angle,
-                        color=self.colony.markers_colors[0]
+                        color=self.colony.markers_colors[self.colony.id_colony][0]
                     )
                     self.model.markers_dict[str(self.colony.id_colony)].append(food_marker)
                     self.ignore_markers_counts += self.ignore_steps_after_marker

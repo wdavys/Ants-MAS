@@ -46,7 +46,7 @@ class Food:
             "Filled": "true",
             "Layer": 1,
             "Color": self.color_food,
-            "r": self.stock,
+            "r": self.stock if self.stock > 0 else 0,
         }
         return portrayal
 
@@ -164,9 +164,10 @@ class Ground(Model):
         
         # Automatisation j'arrive pas, en effet quand je décommande, les deux graphes affichent la même valeur.... (Davy)
         # Si quelqu'un a une idée je suis preneur
-        #for _ in range(n_colonies):
-        #    model_reporters["Food picked " + str(_)]=lambda model: model.colonies[_].food_picked
-        #    model_reporters["Ants " + str(_)]=lambda model: len(model.colonies[_].ants) 
+        
+        #for _ in range(2):
+        #    model_reporters["Food picked " + str(_)]=lambda model: model.colonies[eval(str(_))].food_picked
+        #    model_reporters["Ants " + str(_)]=lambda model: len(model.colonies[eval(str(_))].ants) 
         
         self.datacollector = DataCollector(
             model_reporters=model_reporters,
@@ -181,7 +182,13 @@ class Ground(Model):
                     self.markers_dict[keys].remove(mk)
                 else :
                     mk.lifetime -= 1
+        
+        for foodpoint in self.foods:
+            if foodpoint.stock == 0:
+                self.foods.remove(foodpoint)
+    
         self.datacollector.collect(self)
-        print(self.foods)
+            
         if not self.foods: #self.schedule.steps >= 100:
+            print("This is it!!!")
             self.running = False
