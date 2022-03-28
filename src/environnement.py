@@ -159,15 +159,9 @@ class Ground(Model):
         #     ),
         # },
         
-        model_reporters["Food picked 0"]=lambda model: model.colonies[0].food_picked
-        model_reporters["Food picked 1"]=lambda model: model.colonies[1].food_picked
-        
-        # Automatisation j'arrive pas, en effet quand je décommande, les deux graphes affichent la même valeur.... (Davy)
-        # Si quelqu'un a une idée je suis preneur
-        
-        #for _ in range(2):
-        #    model_reporters["Food picked " + str(_)]=lambda model: model.colonies[eval(str(_))].food_picked
-        #    model_reporters["Ants " + str(_)]=lambda model: len(model.colonies[eval(str(_))].ants) 
+        for _ in range(n_colonies):
+            model_reporters["Food picked " +str(_)]=eval("lambda model: model.colonies["+str(_)+"].food_picked")
+            model_reporters["Ants " + str(_)]=eval("lambda model: len(model.colonies["+str(_)+"].ants)") 
         
         self.datacollector = DataCollector(
             model_reporters=model_reporters,
@@ -189,6 +183,5 @@ class Ground(Model):
     
         self.datacollector.collect(self)
             
-        if not self.foods: #self.schedule.steps >= 100:
-            print("This is it!!!")
+        if not self.foods:
             self.running = False

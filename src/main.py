@@ -117,8 +117,8 @@ from canvas import ContinuousCanvas
 
 
 def run_single_server():
-    n_colonies = 2
-    n_ants_per_colony = [10, 5]
+    n_colonies = 4
+    n_ants_per_colony = [5,5,5, 5]
     colonies_colors = []
     markers_colors = []
     series = []
