@@ -10,7 +10,11 @@ from ant import Ant
 from marker import MarkerPurpose
 
 RADIUS_COLONY = 2
-
+MIN_STOCK = 10
+MAX_STOCK = 100
+WIDTH = 500
+HEIGHT = 500
+SIGHT_DISTANCE = 50
 class Obstacle:
     def __init__(self, x, y, r):
         self.x = x
@@ -77,7 +81,6 @@ class Ground(Model):
         self,
         n_colonies,
         n_ants_per_colony,
-        color_ants,
         color_colonies,
         color_food,
         n_obstacles,
@@ -86,48 +89,45 @@ class Ground(Model):
         speed,
         allow_info_markers=True,
         allow_danger_markers=True,
-        sight_distance=50,
+        sight_distance=SIGHT_DISTANCE,
     ):
         Model.__init__(self)
-        self.space = ContinuousSpace(500, 500, False)
+        self.space = ContinuousSpace(WIDTH, HEIGHT, False)
         self.schedule = RandomActivation(self)
 
+        # These following parameters will serve as getters for class Ant which represents the agents of our simulation
         self.markers_dict = {str(id): [] for id in range(n_colonies)}
-            # Access list of markers from robot through self.model.markers (both read and write)
-        self.obstacles = (
-            []
-        )  # Access list of obstacles from robot through self.model.obstacles
+        self.obstacles = []     
         self.colonies = []
         self.foods = []
-        self.color_ants = color_ants
         self.color_colonies = color_colonies
         self.color_food = color_food
 
         for _ in range(n_obstacles):
             self.obstacles.append(
                 Obstacle(
-                    random.random() * 500,
-                    random.random() * 500,
+                    random.random() * WIDTH,
+                    random.random() * HEIGHT,
                     10 + 20 * random.random(),
                 )
             )
 
         for _ in range(n_foods):
-            x, y = random.random() * 500, random.random() * 500
-            stock = random.randint(10, 100)
+            x, y = random.random() * WIDTH, random.random() * HEIGHT
+            stock = random.randint(MIN_STOCK, MAX_STOCK)
             while [o for o in self.obstacles if np.linalg.norm((o.x - x, o.y - y)) <= o.r + stock]:
-                x, y = random.random() * 500, random.random() * 500
-                stock = random.randint(10, 100)
+                x, y = random.random() * WIDTH, random.random() * HEIGHT
+                stock = random.randint(MIN_STOCK, MAX_STOCK)
             food = Food(x, y, stock, color_food=self.color_food)
             self.foods.append(food)
 
         for id_colony in range(n_colonies):
-            x, y  = random.random() * 500, random.random() * 500
+            x, y  = random.random() * WIDTH, random.random() * HEIGHT
             r = RADIUS_COLONY * n_ants_per_colony[id_colony]
             while [o for o in self.obstacles if np.linalg.norm((o.x - x, o.y - y)) <= o.r + r] \
             or [f for f in self.foods if np.linalg.norm((f.x - x, f.y - y)) <= f.stock + r] \
             or [c for c in self.colonies if np.linalg.norm((c.x - x, c.y - y)) <= c.r + r]:
-                x, y = random.random() * 500, random.random() * 500
+                x, y = random.random() * WIDTH, random.random() * HEIGHT
             colony = Colony(x, y, r, [], color_colony=self.color_colonies[id_colony], id_colony=id_colony, markers_colors=markers_colors)
 
             for _ in range(n_ants_per_colony[id_colony]):
@@ -138,9 +138,9 @@ class Ground(Model):
                     y=y + np.sin(random.random()*2*np.pi) * colony.r,
                     speed=speed,
                     colony=colony,
-                    angle=random.random() * 2 * np.pi,
+                    angle=(random.random()*2-1) * np.pi,
                     sight_distance=sight_distance,
-                    color=self.color_ants[id_colony],
+                    color=self.color_colonies[id_colony],
                 )
                 self.schedule.add(ant)
                 colony.ants.append(ant)
@@ -164,8 +164,8 @@ class Ground(Model):
         
         # Automatisation j'arrive pas, en effet quand je décommande, les deux graphes affichent la même valeur.... (Davy)
         # Si quelqu'un a une idée je suis preneur
-        #for i in range(n_colonies):
-        #    model_reporters["Food picked " + str(i)]=lambda model: model.colonies[i].food_picked
+        #for _ in range(n_colonies):
+        #    model_reporters["Food picked " + str(_)]=lambda model: model.colonies[_].food_picked
         #    model_reporters["Ants " + str(_)]=lambda model: len(model.colonies[_].ants) 
         
         self.datacollector = DataCollector(
@@ -182,6 +182,6 @@ class Ground(Model):
                 else :
                     mk.lifetime -= 1
         self.datacollector.collect(self)
-        
+        print(self.foods)
         if not self.foods: #self.schedule.steps >= 100:
             self.running = False

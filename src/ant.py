@@ -86,7 +86,7 @@ class Ant(Agent):
     
         if dist_to_destination < self.speed or entering:
             next_x, next_y = destination.x, destination.y
-            next_angle = np.pi * random.random()*2-1
+            next_angle = np.pi * (random.random()*2-1)
             reached = True
             return next_x, next_y, next_angle, reached
         
@@ -151,7 +151,7 @@ class Ant(Agent):
         iter = 0
         initial_angle = self.angle
         while crash and iter<MAX_ITERATIONS:
-            # ---- Priorité 2.1 ----
+            # ---- Priority X.X ----
             # We try to avoid any crash with either an ant or an obstacle
             if iter%2:
                 self.angle = initial_angle + (iter//2+1)*random.random()*2*np.pi
@@ -164,10 +164,10 @@ class Ant(Agent):
             iter += 1
 
         if crash:
-            # THe ant couldn't avoid a crash with 
+            # The ant couldn't avoid a crash with 
             iter = 0
             while crash and iter<MAX_ITERATIONS:
-                # ---- Priorité 2.2 ----
+                # ---- Priority X.X ----
                 # At least it 
                 if iter%2:
                     self.angle = initial_angle + (iter//2+1)*random.random()*2*np.pi
@@ -178,8 +178,7 @@ class Ant(Agent):
                 iter += 1
 
         if crash:
-            # Aucun angle ne permettant d'éviter un crash n'a été trouvé,
-            # on maintient l'angle initial et on espère qu'il n'y aura pas de crash
+            # The ant didn't succeed in finding a convenient angle, it maintain its initial trajectory
 
             self.angle = initial_angle
 
@@ -225,7 +224,7 @@ class Ant(Agent):
             # The ant is looking for either food or markers
 
             if (nearest_food := self.look_for_food()) is not None and random.random() < EPS:
-                # The ant saw some food
+                # The ant saw some food and eager
 
                 next_x, next_y, next_angle, food_reached = self.go_to(nearest_food)
 
@@ -264,7 +263,7 @@ class Ant(Agent):
                     # The ant did not see any food nor markers, it explores the environement
 
                     next_x, next_y = move(self.x, self.y, self.speed, self.angle)
-                    next_angle = np.pi * random.random()*2-1
+                    next_angle = np.pi * (random.random()*2-1)
 
         # Update ant states
         self.x, self.y, self.angle = next_x, next_y, next_angle
@@ -277,6 +276,52 @@ class Ant(Agent):
             "Color": self.color,
             "Layer": 3,
             "r": 2
+            #"Shape": "arrowHead"
+            #"heading_x": np.cos(self.angle),
+            #"heading_y": np.sin(self.angle),
+            #"scale": .5
+            # Bizarrement ça ne fonctionne pas avec arrowHead et j'ai pris du temps pour m'en rendre compte...
+        }
+        return portrayal
+
+class Warrior(Ant):
+    def __init__(
+        self, unique_id: int, 
+        model: Model, 
+        x: float, 
+        y: float, 
+        speed: float, 
+        angle: float, 
+        sight_distance: float, 
+        colony, 
+        color: str, proba_cgt_angle=PROBA_CHGT_ANGLE, ignore_steps_after_marker=2):
+        super().__init__(unique_id, model, x, y, speed, angle, sight_distance, colony, color, proba_cgt_angle, ignore_steps_after_marker)
+ 
+    def next_pos(self) -> Tuple:
+        return super().next_pos()
+    
+    def go_to(self, destination) -> Tuple:
+        return super().go_to(destination)
+    
+    def go_back_to_colony(self) -> Tuple:
+        return super().go_back_to_colony()
+    
+    def will_crash_with(self, object):
+        return super().will_crash_with(object)
+    
+    def will_crash(self, objects):
+        return super().will_crash(objects)
+
+    def step(self):
+        return super().step()
+       
+    def portrayal_method(self):
+        portrayal = {
+            "Shape": "circle",
+            "Filled": "true",
+            "Color": self.color,
+            "Layer": 3,
+            "r": 3
             #"Shape": "arrowHead"
             #"heading_x": np.cos(self.angle),
             #"heading_y": np.sin(self.angle),

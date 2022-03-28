@@ -138,7 +138,6 @@ def run_single_server():
         "n_colonies": n_colonies,
         "n_ants_per_colony": n_ants_per_colony,
         "color_colonies": colonies_colors,
-        "color_ants": colonies_colors,
         "color_food": ["#EAEA08"],
         "n_foods": mesa.visualization.ModularVisualization.UserSettableParameter(
             "slider", "Number of foods", 3, 1, 5, 1
