@@ -13,9 +13,9 @@ MIN_STOCK = 10
 MAX_STOCK = 100
 WIDTH = 500
 HEIGHT = 500
-SIGHT_DISTANCE_A = 80       # Ant sight
-SIGHT_DISTANCE_W = 40       # Warrior sight
-LIFESPAN = 2                # Warrior's lifespan                  
+SIGHT_DISTANCE_A = 80  # Ant sight
+SIGHT_DISTANCE_W = 40  # Warrior sight
+LIFESPAN = 2  # Warrior's lifespan
 
 
 class Obstacle:
@@ -69,7 +69,7 @@ class Colony:
         self.id_colony = id_colony
         self.markers_colors = markers_colors
         self.epsilon = epsilon
-    
+
     def portrayal_method(self):
         portrayal = {
             "Shape": "circle",
@@ -120,18 +120,36 @@ class Ground(Model):
         for _ in range(n_foods):
             x, y = random.random() * WIDTH, random.random() * HEIGHT
             stock = random.randint(MIN_STOCK, MAX_STOCK)
-            while [o for o in self.obstacles if np.linalg.norm((o.x - x, o.y - y)) <= o.r + stock]:
+            while [
+                o
+                for o in self.obstacles
+                if np.linalg.norm((o.x - x, o.y - y)) <= o.r + stock
+            ]:
                 x, y = random.random() * WIDTH, random.random() * HEIGHT
                 stock = random.randint(MIN_STOCK, MAX_STOCK)
             food = Food(x, y, stock, color_food=self.color_food)
             self.foods.append(food)
 
         for id_colony in range(n_colonies):
-            x, y  = random.random() * WIDTH, random.random() * HEIGHT
+            x, y = random.random() * WIDTH, random.random() * HEIGHT
             r = RADIUS_COLONY * n_ants[id_colony]
-            while [o for o in self.obstacles if np.linalg.norm((o.x - x, o.y - y)) <= o.r + r] \
-            or [f for f in self.foods if np.linalg.norm((f.x - x, f.y - y)) <= f.stock + r] \
-            or [c for c in self.colonies if np.linalg.norm((c.x - x, c.y - y)) <= c.r + r]:
+            while (
+                [
+                    o
+                    for o in self.obstacles
+                    if np.linalg.norm((o.x - x, o.y - y)) <= o.r + r
+                ]
+                or [
+                    f
+                    for f in self.foods
+                    if np.linalg.norm((f.x - x, f.y - y)) <= f.stock + r
+                ]
+                or [
+                    c
+                    for c in self.colonies
+                    if np.linalg.norm((c.x - x, c.y - y)) <= c.r + r
+                ]
+            ):
                 x, y = random.random() * WIDTH, random.random() * HEIGHT
             colony = Colony(x, y, r, color_colony=color_colonies[id_colony], id_colony=id_colony, markers_colors=markers_colors, epsilon=epsilons[id_colony])
 
@@ -139,38 +157,38 @@ class Ground(Model):
                 ant = Ant(
                     unique_id=int(uuid.uuid1()),
                     model=self,
-                    x=x + np.cos(random.random()*2*np.pi) * colony.r,
-                    y=y + np.sin(random.random()*2*np.pi) * colony.r,
+                    x=x + np.cos(random.random() * 2 * np.pi) * colony.r,
+                    y=y + np.sin(random.random() * 2 * np.pi) * colony.r,
                     speed=speed,
                     colony=colony,
-                    angle=(random.random()*2-1) * np.pi,
+                    angle=(random.random() * 2 - 1) * np.pi,
                     sight_distance=SIGHT_DISTANCE_A,
                     color=colony.color_colony,
-                    epsilon=colony.epsilon
+                    epsilon=colony.epsilon,
                 )
                 self.schedule.add(ant)
                 colony.ants.append(ant)
-            
+
             for _ in range(n_warriors[id_colony]):
                 warrior = Warrior(
                     unique_id=int(uuid.uuid1()),
                     model=self,
-                    x=x + np.cos(random.random()*2*np.pi) * colony.r,
-                    y=y + np.sin(random.random()*2*np.pi) * colony.r,
+                    x=x + np.cos(random.random() * 2 * np.pi) * colony.r,
+                    y=y + np.sin(random.random() * 2 * np.pi) * colony.r,
                     speed=speed,
                     colony=colony,
-                    angle=(random.random()*2-1) * np.pi,
+                    angle=(random.random() * 2 - 1) * np.pi,
                     sight_distance=SIGHT_DISTANCE_W,
                     color=color_colonies[id_colony],
                     lifespan=LIFESPAN
                 )
                 self.schedule.add(warrior)
                 colony.warriors.append(warrior)
-                
+
             self.colonies.append(colony)
-        
-        model_reporters={}
-       
+
+        model_reporters = {}
+
         #     "Danger markers 0": lambda model: len(
         #         [m for m in model.markers_dict['0'] if m.purpose == MarkerPurpose.DANGER]
         #     ),
@@ -178,11 +196,15 @@ class Ground(Model):
         #         [m for m in model.markers_dict['0'] if m.purpose == MarkerPurpose.FOOD]
         #     ),
         # },
-        
+
         for _ in range(n_colonies):
-            model_reporters["Food picked " +str(_)]=eval("lambda model: model.colonies["+str(_)+"].food_picked")
-            model_reporters["Ants " + str(_)]=eval("lambda model: len(model.colonies["+str(_)+"].ants)") 
-        
+            model_reporters["Food picked " + str(_)] = eval(
+                "lambda model: model.colonies[" + str(_) + "].food_picked"
+            )
+            model_reporters["Ants " + str(_)] = eval(
+                "lambda model: len(model.colonies[" + str(_) + "].ants)"
+            )
+
         self.datacollector = DataCollector(
             model_reporters=model_reporters,
             agent_reporters={},
@@ -196,17 +218,17 @@ class Ground(Model):
                     self.markers_dict[keys].remove(mk)
                 else:
                     mk.lifetime -= 1
-        
+
         for foodpoint in self.foods:
             if foodpoint.stock == 0:
                 self.foods.remove(foodpoint)
-                
+
         for warrior in self.schedule.agents:
             if isinstance(warrior, Warrior) and warrior.lifespan == 0:
                 self.schedule.remove(warrior)
                 self.colonies[warrior.colony.id_colony].warriors.remove(warrior)
-    
+
         self.datacollector.collect(self)
-            
+
         if not self.foods:
             self.running = False
