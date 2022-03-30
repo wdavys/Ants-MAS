@@ -118,9 +118,9 @@ from canvas import ContinuousCanvas
 
 def run_single_server():
     n_colonies = 2
-    n_ants = [10, 5] # List of shape (n_colonies,)
-    n_warriors = [3, 1] # List of shape (n_colonies,)
-    epsilons = [.5, .7] # List of shape (n_colonies,)
+    n_ants = [5, 3] # List of shape (n_colonies,)
+    n_warriors = [1, 0] # List of shape (n_colonies,)
+    epsilons = [.5, .1] # List of shape (n_colonies,)
     colonies_colors = []
     markers_colors = []
     series = []

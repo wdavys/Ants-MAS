@@ -140,10 +140,10 @@ class Ant(Agent):
         return False
     
     def step(self):
-        ants = [ant for ant in self.model.schedule.agents if self!=ant
-                            and euclidean(self, ant)<self.sight_distance]
+        ants = [ant for ant in self.model.schedule.agents if self != ant
+                            and euclidean(self, ant) < self.sight_distance]
         obstacles = [obstacle for obstacle in self.model.obstacles
-                        if euclidean(self, obstacle)<self.sight_distance]
+                        if euclidean(self, obstacle) < self.sight_distance]
 
         crash = self.model.space.out_of_bounds(self.next_pos())
         if not crash:
@@ -276,7 +276,7 @@ class Ant(Agent):
             "Filled": "true",
             "Color": self.color,
             "Layer": 3,
-            "r": 2
+            "r": 3
             #"Shape": "arrowHead"
             #"heading_x": np.cos(self.angle),
             #"heading_y": np.sin(self.angle),
@@ -320,7 +320,7 @@ class Warrior(Ant):
         if ants_at_sight := [
             ant
             for ant in self.model.schedule.agents
-            if ant.__class__.__name__ == "Ant" and ant.colony != self.colony and euclidean(self, ant) < self.sight_distance
+            if ant.__class__.__name__ == "Ant" and ant.colony.id_colony != self.colony.id_colony and euclidean(self, ant) < self.sight_distance
         ]:
             nearest_ant = ants_at_sight[
                 np.argmin([euclidean(self, ant) for ant in ants_at_sight])
@@ -359,11 +359,24 @@ class Warrior(Ant):
         next_x, next_y, next_angle = *self.next_pos(), self.angle
         
         if (nearest_ant := self.look_for_ant()) is not None:
+            print(nearest_ant)
             next_x, next_y, next_angle, reached = self.go_to(nearest_ant)
 
             if reached:
+                if len(self.model.markers_dict[str(nearest_ant.colony.id_colony)]) < MAX_MARKERS:
+                    danger_marker = Marker(
+                        x=nearest_ant.x,
+                        y=nearest_ant.y,
+                        colony_id=nearest_ant.colony.id_colony,
+                        purpose=MarkerPurpose.DANGER,
+                        direction=nearest_ant.angle,
+                        color=nearest_ant.colony.markers_colors[nearest_ant.colony.id_colony][1]
+                    )
+                    self.model.markers_dict[str(nearest_ant.colony.id_colony)].append(danger_marker)
+                    self.ignore_markers_counts += self.ignore_steps_after_marker
+                    
+                self.model.schedule.remove(nearest_ant)
                 self.model.colonies[nearest_ant.colony.id_colony].ants.remove(nearest_ant)
-                self.model.schedule.agents.remove(nearest_ant)
                 self.lifespan -= 1
                 self.go_back_to_colony()
 
@@ -379,7 +392,7 @@ class Warrior(Ant):
             "Filled": "true",
             "Color": self.color,
             "Layer": 3,
-            "r": 3
+            "r": 5
             #"Shape": "arrowHead"
             #"heading_x": np.cos(self.angle),
             #"heading_y": np.sin(self.angle),

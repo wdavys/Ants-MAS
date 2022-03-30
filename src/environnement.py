@@ -9,13 +9,13 @@ from mesa.datacollection import DataCollector
 from ant import Ant, Warrior
 from marker import MarkerPurpose
 
-RADIUS_COLONY = 2
+RADIUS_COLONY = 3
 MIN_STOCK = 10
 MAX_STOCK = 100
 WIDTH = 500
 HEIGHT = 500
-SIGHT_DISTANCE_A = 50
-SIGHT_DISTANCE_W = 10
+SIGHT_DISTANCE_A = 80
+SIGHT_DISTANCE_W = 40
 LIFESPAN = 10
 class Obstacle:
     def __init__(self, x, y, r):
@@ -148,7 +148,6 @@ class Ground(Model):
                     epsilon=colony.epsilon
                 )
                 self.schedule.add(ant)
-                print(ant)
                 colony.ants.append(ant)
             
             for _ in range(n_warriors[id_colony]):
@@ -194,7 +193,7 @@ class Ground(Model):
             for mk in self.markers_dict[keys]:
                 if mk.lifetime == 0:
                     self.markers_dict[keys].remove(mk)
-                else :
+                else:
                     mk.lifetime -= 1
         
         for foodpoint in self.foods:
