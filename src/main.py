@@ -117,8 +117,10 @@ from canvas import ContinuousCanvas
 
 
 def run_single_server():
-    n_colonies = 4
-    n_ants_per_colony = [5,5,5, 5]
+    n_colonies = 2
+    n_ants = [10, 5] # List of shape (n_colonies,)
+    n_warriors = [3, 1] # List of shape (n_colonies,)
+    epsilons = [.5, .7] # List of shape (n_colonies,)
     colonies_colors = []
     markers_colors = []
     series = []
@@ -136,7 +138,9 @@ def run_single_server():
     
     model_params = {
         "n_colonies": n_colonies,
-        "n_ants_per_colony": n_ants_per_colony,
+        "n_ants": n_ants,
+        "n_warriors": n_warriors,
+        "epsilons": epsilons,
         "color_colonies": colonies_colors,
         "color_food": ["#EAEA08"],
         "n_foods": mesa.visualization.ModularVisualization.UserSettableParameter(

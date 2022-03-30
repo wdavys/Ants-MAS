@@ -22,6 +22,7 @@ class Ant(Agent):
         sight_distance: float,
         colony,
         color: str,
+        epsilon: float,
         proba_cgt_angle=PROBA_CHGT_ANGLE,
         ignore_steps_after_marker=2,
     ):
@@ -38,6 +39,7 @@ class Ant(Agent):
         self.ignore_steps_after_marker = ignore_steps_after_marker
         self.color = color
         self.colony = colony
+        self.epsilon = epsilon
 
     def next_pos(self) -> Tuple:
         next_x, next_y = move(self.x, self.y, self.speed, self.angle)
@@ -286,7 +288,8 @@ class Ant(Agent):
 
 class Warrior(Ant):
     def __init__(
-        self, unique_id: int, 
+        self, 
+        unique_id: int, 
         model: Model, 
         x: float, 
         y: float, 
@@ -294,8 +297,13 @@ class Warrior(Ant):
         angle: float, 
         sight_distance: float, 
         colony, 
-        color: str, proba_cgt_angle=PROBA_CHGT_ANGLE, ignore_steps_after_marker=2):
+        color: str,
+        lifespan: int, 
+        proba_cgt_angle=PROBA_CHGT_ANGLE, 
+        ignore_steps_after_marker=2):
         super().__init__(unique_id, model, x, y, speed, angle, sight_distance, colony, color, proba_cgt_angle, ignore_steps_after_marker)
+        
+        self.lifespan = lifespan
  
     def next_pos(self) -> Tuple:
         return super().next_pos()
@@ -311,8 +319,21 @@ class Warrior(Ant):
     
     def will_crash(self, objects):
         return super().will_crash(objects)
+    
+    def look_for_ant(self):
+        if ants_at_sight := [
+            ant
+            for ant in self.model.schedule.agents
+            if ant.colony_id != euclidean(self, food) < self.sight_distance
+        ]:
+            nearest_food = foods_at_sight[
+                np.argmin([euclidean(self, food) for food in foods_at_sight])
+            ]
+
+            return nearest_food
 
     def step(self):
+        
         return super().step()
        
     def portrayal_method(self):

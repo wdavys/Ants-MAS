@@ -6,7 +6,7 @@ from mesa.space import ContinuousSpace
 from mesa.time import RandomActivation
 from mesa.datacollection import DataCollector
 
-from ant import Ant
+from ant import Ant, Warrior
 from marker import MarkerPurpose
 
 RADIUS_COLONY = 2
@@ -15,6 +15,7 @@ MAX_STOCK = 100
 WIDTH = 500
 HEIGHT = 500
 SIGHT_DISTANCE = 50
+LIFESPAN = 10
 class Obstacle:
     def __init__(self, x, y, r):
         self.x = x
@@ -55,7 +56,7 @@ class Food:
 
 
 class Colony:
-    def __init__(self, x, y, r, ants, color_colony, id_colony, markers_colors):
+    def __init__(self, x, y, r, ants, color_colony, id_colony, markers_colors, epsilon):
         self.x = x
         self.y = y
         self.r = r
@@ -64,6 +65,7 @@ class Colony:
         self.color_colony = color_colony
         self.id_colony = id_colony
         self.markers_colors = markers_colors
+        self.epsilon = epsilon
     
     def portrayal_method(self):
         portrayal = {
@@ -80,13 +82,15 @@ class Ground(Model):
     def __init__(
         self,
         n_colonies,
-        n_ants_per_colony,
+        n_ants,
+        n_warriors,
         color_colonies,
         color_food,
         n_obstacles,
         n_foods,
         markers_colors,
         speed,
+        epsilons,
         allow_info_markers=True,
         allow_danger_markers=True,
         sight_distance=SIGHT_DISTANCE,
@@ -123,14 +127,14 @@ class Ground(Model):
 
         for id_colony in range(n_colonies):
             x, y  = random.random() * WIDTH, random.random() * HEIGHT
-            r = RADIUS_COLONY * n_ants_per_colony[id_colony]
+            r = RADIUS_COLONY * n_ants[id_colony]
             while [o for o in self.obstacles if np.linalg.norm((o.x - x, o.y - y)) <= o.r + r] \
             or [f for f in self.foods if np.linalg.norm((f.x - x, f.y - y)) <= f.stock + r] \
             or [c for c in self.colonies if np.linalg.norm((c.x - x, c.y - y)) <= c.r + r]:
                 x, y = random.random() * WIDTH, random.random() * HEIGHT
-            colony = Colony(x, y, r, [], color_colony=self.color_colonies[id_colony], id_colony=id_colony, markers_colors=markers_colors)
+            colony = Colony(x, y, r, [], color_colony=self.color_colonies[id_colony], id_colony=id_colony, markers_colors=markers_colors, epsilon=epsilons[id_colony])
 
-            for _ in range(n_ants_per_colony[id_colony]):
+            for _ in range(n_ants[id_colony]):
                 ant = Ant(
                     unique_id=int(uuid.uuid1()),
                     model=self,
@@ -141,10 +145,27 @@ class Ground(Model):
                     angle=(random.random()*2-1) * np.pi,
                     sight_distance=sight_distance,
                     color=self.color_colonies[id_colony],
+                    epsilon=colony.epsilon
                 )
                 self.schedule.add(ant)
                 colony.ants.append(ant)
-      
+            
+            for _ in range(n_warriors[id_colony]):
+                ant = Warrior(
+                    unique_id=int(uuid.uuid1()),
+                    model=self,
+                    x=x + np.cos(random.random()*2*np.pi) * colony.r,
+                    y=y + np.sin(random.random()*2*np.pi) * colony.r,
+                    speed=speed,
+                    colony=colony,
+                    angle=(random.random()*2-1) * np.pi,
+                    sight_distance=sight_distance,
+                    color=self.color_colonies[id_colony],
+                    lifespan=
+                )
+                self.schedule.add(ant)
+                colony.ants.append(ant)
+                
             self.colonies.append(colony)
         
         model_reporters={}
