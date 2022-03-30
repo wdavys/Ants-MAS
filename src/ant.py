@@ -370,10 +370,10 @@ class Warrior(Ant):
                     self.ignore_markers_counts += self.ignore_steps_after_marker
                 
                 if not isinstance(nearest_ant, Warrior):
-                    # If the warrior ant is near a basic ant it will just kill it
+                    # If the warrior ant is near a basic ant it will just kill it while the ant will reduce its lifespan
                     self.model.schedule.remove(nearest_ant)
                     self.model.colonies[nearest_ant.colony.id_colony].ants.remove(nearest_ant)
-                    self.lifespan -= 1
+                    self.lifespan -= 1 # It takes two ants to destroy a warrior
                     
                     # The warrior will go back to its colony to protect its fellow ants like a shield
                     self.go_back_to_colony()

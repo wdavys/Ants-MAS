@@ -7,16 +7,17 @@ from mesa.time import RandomActivation
 from mesa.datacollection import DataCollector
 
 from ant import Ant, Warrior
-from marker import MarkerPurpose
 
 RADIUS_COLONY = 3
 MIN_STOCK = 10
 MAX_STOCK = 100
 WIDTH = 500
 HEIGHT = 500
-SIGHT_DISTANCE_A = 80
-SIGHT_DISTANCE_W = 40
-LIFESPAN = 2
+SIGHT_DISTANCE_A = 80       # Ant sight
+SIGHT_DISTANCE_W = 40       # Warrior sight
+LIFESPAN = 2                # Warrior's lifespan                  
+
+
 class Obstacle:
     def __init__(self, x, y, r):
         self.x = x
