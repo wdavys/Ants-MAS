@@ -277,11 +277,6 @@ class Ant(Agent):
             "Color": self.color,
             "Layer": 3,
             "r": 3
-            #"Shape": "arrowHead"
-            #"heading_x": np.cos(self.angle),
-            #"heading_y": np.sin(self.angle),
-            #"scale": .5
-            # Bizarrement ça ne fonctionne pas avec arrowHead et j'ai pris du temps pour m'en rendre compte...
         }
         return portrayal
 
@@ -320,7 +315,7 @@ class Warrior(Ant):
         if ants_at_sight := [
             ant
             for ant in self.model.schedule.agents
-            if ant.__class__.__name__ == "Ant" and ant.colony.id_colony != self.colony.id_colony and euclidean(self, ant) < self.sight_distance
+            if isinstance(ant, (Ant, Warrior)) and ant.colony.id_colony != self.colony.id_colony and euclidean(self, ant) < self.sight_distance
         ]:
             nearest_ant = ants_at_sight[
                 np.argmin([euclidean(self, ant) for ant in ants_at_sight])
@@ -373,11 +368,21 @@ class Warrior(Ant):
                     )
                     self.model.markers_dict[str(nearest_ant.colony.id_colony)].append(danger_marker)
                     self.ignore_markers_counts += self.ignore_steps_after_marker
+                
+                if not isinstance(nearest_ant, Warrior):
+                    # If the warrior ant is near a basic ant it will just kill it
+                    self.model.schedule.remove(nearest_ant)
+                    self.model.colonies[nearest_ant.colony.id_colony].ants.remove(nearest_ant)
+                    self.lifespan -= 1
                     
-                self.model.schedule.remove(nearest_ant)
-                self.model.colonies[nearest_ant.colony.id_colony].ants.remove(nearest_ant)
-                self.lifespan -= 1
-                self.go_back_to_colony()
+                    # The warrior will go back to its colony to protect its fellow ants like a shield
+                    self.go_back_to_colony()
+                else:    
+                    # Besides, if it is next to warrior which is an opponent, they destroy each other
+                    self.model.schedule.remove(nearest_ant)
+                    self.model.colonies[nearest_ant.colony.id_colony].warriors.remove(nearest_ant)
+                    self.model.schedule.remove(self)
+                    self.model.colonies[self.colony.id_colony].warriors.remove(self)
 
         else:
             next_x, next_y = self.next_pos()
@@ -392,10 +397,5 @@ class Warrior(Ant):
             "Color": self.color,
             "Layer": 3,
             "r": 5
-            #"Shape": "arrowHead"
-            #"heading_x": np.cos(self.angle),
-            #"heading_y": np.sin(self.angle),
-            #"scale": .5
-            # Bizarrement ça ne fonctionne pas avec arrowHead et j'ai pris du temps pour m'en rendre compte...
         }
         return portrayal

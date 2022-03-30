@@ -1,6 +1,6 @@
 import enum
 
-LIFETIME = 20
+LIFETIME = 50
 class MarkerPurpose(enum.Enum):
     DANGER = enum.auto()
     FOOD = enum.auto()
