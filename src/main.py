@@ -41,9 +41,7 @@ def run_single_server():
             "slider", "Number of obstacles", 5, 2, 10, 1
         ),
         "color_food": ["#EAEA08"],
-        "color_colonies": colonies_colors,
         "epsilons": epsilons,
-        "markers_colors": markers_colors,
         "speed": mesa.visualization.ModularVisualization.UserSettableParameter(
             "slider", "Ant speed", 15, 5, 40, 5
         ),
@@ -62,42 +60,34 @@ def run_single_server():
 
 
 def run_batch():
-
-    # ----- Analyse allow_smart_angle_chgt -----
-    # fixed_params = {"n_colony":2,
-    #                 "n_obstacles":5,
-    #                 "n_quicksand":5,
-    #                 "speed": 15,
-    #                 "n_mines":15,
-    #                 "allow_danger_markers":True,
-    #                 "allow_info_markers":True}
-    # variable_params = {"allow_smart_angle_chgt":[False]*50 + [True]*50 }
-
-    # ----- Analyse allow_danger_markers -----
-    # fixed_params = {"n_robots":8,
-    #                 "n_obstacles":5,
-    #                 "n_quicksand":10,
-    #                 "speed": 15,
-    #                 "n_mines":15,
-    #                 "allow_smart_angle_chgt":False,
-    #                 "allow_info_markers":True}
-    # variable_params = {"allow_danger_markers":[False]*50 + [True]*50}
-
-    # model_reporters = {"step in quicksands": lambda model:model.step_in_quicksands,
-    #                 "step in quicksands/T": lambda model:model.step_in_quicksands/model.schedule.steps,
-    #                 "time step": lambda model:model.schedule.steps}
-    #
-    # runner = BatchRunner(MinedZone,
-    #                         variable_parameters=variable_params,
-    #                         fixed_parameters=fixed_params,
-    #                         model_reporters=model_reporters)
-    #
-    # runner.run_all()
-    # df = runner.get_model_vars_dataframe()
-    #
-    # print(df)
-
-    return
+    series = []
+    model_reporters={}
+    for i in range(2):
+        series.append({"Label": "Ants " + str(i), "Color": "black"})
+        series.append({"Label": "Food picked " + str(i), "Color": "black"})
+        
+        model_reporters["Food picked " +str(i)]=eval("lambda model: model.colonies["+str(i)+"].food_picked")
+        model_reporters["Ants " + str(i)]=eval("lambda model: len(model.colonies["+str(i)+"].ants)") 
+    
+    batchrunner = BatchRunner(
+        model_cls = Ground,
+        variable_parameters={
+            "n_colonies": (2,),
+            "n_ants": ((10, 10),),
+            "n_warriors": ((1, 2),),
+            "n_foods": (3,),
+            "n_obstacles": (5,),
+            "color_food": ("#EAEA08",),
+            "epsilons": ((.5, .5),),
+            "speed": (15,),
+            "allow_danger_markers": (True,),
+            "allow_info_markers": (True,)
+        },
+        model_reporters=model_reporters
+    )
+    batchrunner.run_all()
+    df = batchrunner.get_model_vars_dataframe()
+    return df
 
 
 if __name__ == "__main__":
@@ -113,6 +103,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     if args.run_batch:
-        run_batch()
+        df = run_batch()
+        df.to_csv("./exp.csv")
     else:
         run_single_server()
