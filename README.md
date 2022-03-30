@@ -3,8 +3,8 @@
 This is a final project mimicking the course of actions in a colony of ants
 * Authors: Davy Simeu, Alexandre Bodinier, Grégoire Hugon, Sacha Clavel
 
-### Unit tests :
+### Unit tests:
 Run `python -m pytest` to run tests.
 
-### Format :
+### Format:
 Run `black <path-to-file>` pour formatter automatiquement le ficher souhaité
