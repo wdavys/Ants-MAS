@@ -359,7 +359,6 @@ class Warrior(Ant):
         next_x, next_y, next_angle = *self.next_pos(), self.angle
         
         if (nearest_ant := self.look_for_ant()) is not None:
-            print(nearest_ant)
             next_x, next_y, next_angle, reached = self.go_to(nearest_ant)
 
             if reached:

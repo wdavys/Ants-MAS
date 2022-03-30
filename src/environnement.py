@@ -16,7 +16,7 @@ WIDTH = 500
 HEIGHT = 500
 SIGHT_DISTANCE_A = 80
 SIGHT_DISTANCE_W = 40
-LIFESPAN = 10
+LIFESPAN = 2
 class Obstacle:
     def __init__(self, x, y, r):
         self.x = x
@@ -199,6 +199,11 @@ class Ground(Model):
         for foodpoint in self.foods:
             if foodpoint.stock == 0:
                 self.foods.remove(foodpoint)
+                
+        for warrior in self.schedule.agents:
+            if isinstance(warrior, Warrior) and warrior.lifespan == 0:
+                self.schedule.remove(warrior)
+                self.colonies[warrior.colony.id_colony].warriors.remove(warrior)
     
         self.datacollector.collect(self)
             
