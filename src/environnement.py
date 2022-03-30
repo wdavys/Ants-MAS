@@ -90,8 +90,6 @@ class Ground(Model):
         n_obstacles,
         n_foods,
         color_food,
-        color_colonies,
-        markers_colors,
         epsilons,
         speed,
         allow_info_markers=True,
@@ -102,11 +100,18 @@ class Ground(Model):
         self.schedule = RandomActivation(self)
 
         # These following parameters will serve as getters for class Ant which represents the agents of our simulation
-        self.obstacles = []     
+        self.obstacles = []
         self.colonies = []
         self.foods = []
         self.color_food = color_food
         self.markers_dict = {str(id): [] for id in range(n_colonies)}
+        
+        self.color_colonies = []
+        self.marker_colors = []
+        for _ in range(n_colonies):
+            self.color_colonies.append("#"+''.join(random.choices('0123456789ABCDEF', k=6)))
+            self.marker_colors.append(["#"+''.join(random.choices('0123456789ABCDEF', k=6)),
+                              "#"+''.join(random.choices('0123456789ABCDEF', k=6))]) # element 0 for purpose FOOD and element 1 for DANGER
 
         for _ in range(n_obstacles):
             self.obstacles.append(
@@ -151,7 +156,15 @@ class Ground(Model):
                 ]
             ):
                 x, y = random.random() * WIDTH, random.random() * HEIGHT
-            colony = Colony(x, y, r, color_colony=color_colonies[id_colony], id_colony=id_colony, markers_colors=markers_colors, epsilon=epsilons[id_colony])
+            colony = Colony(
+                x,
+                y,
+                r,
+                color_colony=self.color_colonies[id_colony],
+                id_colony=id_colony,
+                markers_colors=self.marker_colors,
+                epsilon=epsilons[id_colony],
+            )
 
             for _ in range(n_ants[id_colony]):
                 ant = Ant(
@@ -179,8 +192,8 @@ class Ground(Model):
                     colony=colony,
                     angle=(random.random() * 2 - 1) * np.pi,
                     sight_distance=SIGHT_DISTANCE_W,
-                    color=color_colonies[id_colony],
-                    lifespan=LIFESPAN
+                    color=self.color_colonies[id_colony],
+                    lifespan=LIFESPAN,
                 )
                 self.schedule.add(warrior)
                 colony.warriors.append(warrior)

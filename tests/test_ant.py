@@ -5,9 +5,8 @@ from src import ant, space, environnement
 
 MODEL = environnement.Ground(
     n_colony=2,
-    n_ants_per_colony=[2,2],
+    n_ants_per_colony=[2, 2],
     color_ants="black",
-    color_colonies="green",
     color_food="blue",
     n_obstacles=5,
     n_food=2,
