@@ -153,7 +153,7 @@ class Ant(Agent):
         initial_angle = self.angle
         while crash and iter<MAX_ITERATIONS:
             # ---- Priority X.X ----
-            # We try to avoid any crash with either an ant or an obstacle
+            # We try to avoid a crash with either any ant or any obstacle
             if iter%2:
                 self.angle = initial_angle + (iter//2+1)*random.random()*2*np.pi
             else:
@@ -165,7 +165,7 @@ class Ant(Agent):
             iter += 1
 
         if crash:
-            # The ant couldn't avoid a crash with 
+            # The ant couldn't avoid a crash with an obstacle or an ant
             iter = 0
             while crash and iter<MAX_ITERATIONS:
                 # ---- Priority X.X ----
@@ -258,7 +258,7 @@ class Ant(Agent):
                     next_x, next_y, next_angle, marker_reached = self.go_to(nearest_food_marker)
 
                     if marker_reached:
-                        self.is_on_food_marker = True  # TODO a quoi ça sert ?
+                        self.is_on_food_marker = True
 
                 else:
                     # The ant did not see any food nor markers, it explores the environement
@@ -313,11 +313,14 @@ class Warrior(Ant):
     def go_back_to_colony(self) -> Tuple:
         return super().go_back_to_colony()
     
+    def will_crash(self, objects):
+        return super().will_crash(objects)
+    
     def look_for_ant(self):
         if ants_at_sight := [
             ant
             for ant in self.model.schedule.agents
-            if ant.colony != self.colony and euclidean(self, ant) < self.sight_distance
+            if ant.__class__.__name__ == "Ant" and ant.colony != self.colony and euclidean(self, ant) < self.sight_distance
         ]:
             nearest_ant = ants_at_sight[
                 np.argmin([euclidean(self, ant) for ant in ants_at_sight])
@@ -326,12 +329,41 @@ class Warrior(Ant):
             return nearest_ant
 
     def step(self):
+        obstacles = [obstacle for obstacle in self.model.obstacles
+                        if euclidean(self, obstacle)<self.sight_distance]
+
+        crash = self.model.space.out_of_bounds(self.next_pos())
+        if not crash:
+            crash = self.will_crash(obstacles)
+        
+        iter = 0
+        initial_angle = self.angle
+        while crash and iter<MAX_ITERATIONS:
+            # ---- Priority X.X ----
+            # We try to avoid a crash with any obstacle
+            if iter%2:
+                self.angle = initial_angle + (iter//2+1)*random.random()*2*np.pi
+            else:
+                self.angle = initial_angle - (iter//2+1)*random.random()*2*np.pi
+
+            crash = self.model.space.out_of_bounds(self.next_pos())
+            if not crash:
+                crash = self.will_crash(obstacles)
+            iter += 1
+
+        if crash:
+            # The ant didn't succeed in finding a convenient angle, it maintain its initial trajectory
+
+            self.angle = initial_angle
+
+        next_x, next_y, next_angle = *self.next_pos(), self.angle
+        
         if (nearest_ant := self.look_for_ant()) is not None:
             next_x, next_y, next_angle, reached = self.go_to(nearest_ant)
 
             if reached:
+                self.model.colonies[nearest_ant.colony.id_colony].ants.remove(nearest_ant)
                 self.model.schedule.agents.remove(nearest_ant)
-                #nearest_ant.colony.ants.remove(nearest_ant)
                 self.lifespan -= 1
                 self.go_back_to_colony()
 
