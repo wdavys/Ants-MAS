@@ -1,6 +1,8 @@
 import enum
 
 LIFETIME = 50
+
+
 class MarkerPurpose(enum.Enum):
     DANGER = enum.auto()
     FOOD = enum.auto()
@@ -16,7 +18,7 @@ class Marker:
         self.lifetime = LIFETIME
         if purpose == MarkerPurpose.FOOD:
             self.direction = direction
-    
+
     def portrayal_method(self):
         portrayal = {
             "Shape": "circle",

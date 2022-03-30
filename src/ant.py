@@ -9,6 +9,7 @@ PROBA_CHGT_ANGLE = 0.3
 MAX_MARKERS = np.inf
 MAX_ITERATIONS = 100
 
+
 class Ant(Agent):
     def __init__(
         self,
@@ -59,44 +60,56 @@ class Ant(Agent):
     def look_for_food_marker(self, back_to_colony=False):
         if back_to_colony:
             if food_markers_at_sight := [
-                marker for marker in self.model.markers_dict[str(self.colony.id_colony)]
-                if marker.purpose == MarkerPurpose.FOOD and \
-                    np.array([self.x-self.colony.x, self.y-self.colony.y]) @ np.array([self.x-marker.x, self.y-marker.y])> 0
+                marker
+                for marker in self.model.markers_dict[str(self.colony.id_colony)]
+                if marker.purpose == MarkerPurpose.FOOD
+                and np.array([self.x - self.colony.x, self.y - self.colony.y])
+                @ np.array([self.x - marker.x, self.y - marker.y])
+                > 0
             ]:
                 nearest_food_marker = food_markers_at_sight[
-                    np.argmin([euclidean(self, marker) for marker in food_markers_at_sight])
+                    np.argmin(
+                        [euclidean(self, marker) for marker in food_markers_at_sight]
+                    )
                 ]
-                
+
                 return nearest_food_marker
-            
+
         else:
             if food_markers_at_sight := [
-                marker for marker in self.model.markers_dict[str(self.colony.id_colony)]
+                marker
+                for marker in self.model.markers_dict[str(self.colony.id_colony)]
                 if marker.purpose == MarkerPurpose.FOOD
             ]:
                 nearest_food_marker = food_markers_at_sight[
-                    np.argmin([euclidean(self, marker) for marker in food_markers_at_sight])
+                    np.argmin(
+                        [euclidean(self, marker) for marker in food_markers_at_sight]
+                    )
                 ]
-                
+
                 return nearest_food_marker
-     
+
     def go_to(self, destination) -> Tuple:
         dist_to_destination = euclidean(self, destination)
         reached = False
-        entering = dist_to_destination < destination.r if destination.__class__.__name__ in ["Food", "Colony"] else False
-    
+        entering = (
+            dist_to_destination < destination.r
+            if destination.__class__.__name__ in ["Food", "Colony"]
+            else False
+        )
+
         if dist_to_destination < self.speed or entering:
             next_x, next_y = destination.x, destination.y
-            next_angle = np.pi * (random.random()*2-1)
+            next_angle = np.pi * (random.random() * 2 - 1)
             reached = True
             return next_x, next_y, next_angle, reached
-        
+
         else:
             next_angle = np.arccos((destination.x - self.x) / dist_to_destination)
             if destination.y < self.y:
                 next_angle = -next_angle
             return *self.next_pos(), next_angle, reached
-    
+
     def go_back_to_colony(self) -> Tuple:
         next_x, next_y, next_angle, reached = self.go_to(self.colony)
 
@@ -107,57 +120,67 @@ class Ant(Agent):
         return next_x, next_y, next_angle
 
     def will_crash_with(self, object):
-        '''
-            Check if the ant will crash with ``object``.
-            ``object`` is either an obstacle or another ant.
-        '''
+        """
+        Check if the ant will crash with ``object``.
+        ``object`` is either an obstacle or another ant.
+        """
         pf = Point(*move(self.x, self.y, self.speed, self.angle))
         p0pf = np.array([pf.x - self.x, pf.y - self.y])
         p0pc = np.array([object.x - self.x, object.y - self.y])
         norm_p0pf = euclidean(self, pf)
         norm_p0pc = euclidean(self, object)
         prod = p0pf @ p0pc
-        norm_p0ph = abs(prod/norm_p0pf)
+        norm_p0ph = abs(prod / norm_p0pf)
         radius = object.speed if isinstance(object, Ant) else object.r
 
-        if norm_p0ph>norm_p0pf:
+        if norm_p0ph > norm_p0pf:
             dist = euclidean(pf, object)
-        elif prod<0:
-            dist=np.inf
+        elif prod < 0:
+            dist = np.inf
         #     dist = euclidean(p0, pc)
         else:
             dist = np.sqrt(norm_p0pc**2 - norm_p0ph**2)
 
-        return dist<=radius
+        return dist <= radius
 
     def will_crash(self, objects):
-        '''
-            Check if the ant will crash with an element of ``objects``
-        '''
+        """
+        Check if the ant will crash with an element of ``objects``
+        """
         for obj in objects:
             if self.will_crash_with(obj):
                 return True
         return False
-    
+
     def step(self):
-        ants = [ant for ant in self.model.schedule.agents if self != ant
-                            and euclidean(self, ant) < self.sight_distance]
-        obstacles = [obstacle for obstacle in self.model.obstacles
-                        if euclidean(self, obstacle) < self.sight_distance]
+        ants = [
+            ant
+            for ant in self.model.schedule.agents
+            if self != ant and euclidean(self, ant) < self.sight_distance
+        ]
+        obstacles = [
+            obstacle
+            for obstacle in self.model.obstacles
+            if euclidean(self, obstacle) < self.sight_distance
+        ]
 
         crash = self.model.space.out_of_bounds(self.next_pos())
         if not crash:
             crash = self.will_crash(ants) or self.will_crash(obstacles)
-        
+
         iter = 0
         initial_angle = self.angle
-        while crash and iter<MAX_ITERATIONS:
+        while crash and iter < MAX_ITERATIONS:
             # ---- Priority X.X ----
             # We try to avoid a crash with either any ant or any obstacle
-            if iter%2:
-                self.angle = initial_angle + (iter//2+1)*random.random()*2*np.pi
+            if iter % 2:
+                self.angle = (
+                    initial_angle + (iter // 2 + 1) * random.random() * 2 * np.pi
+                )
             else:
-                self.angle = initial_angle - (iter//2+1)*random.random()*2*np.pi
+                self.angle = (
+                    initial_angle - (iter // 2 + 1) * random.random() * 2 * np.pi
+                )
 
             crash = self.model.space.out_of_bounds(self.next_pos())
             if not crash:
@@ -167,13 +190,17 @@ class Ant(Agent):
         if crash:
             # The ant couldn't avoid a crash with an obstacle or an ant
             iter = 0
-            while crash and iter<MAX_ITERATIONS:
+            while crash and iter < MAX_ITERATIONS:
                 # ---- Priority X.X ----
-                # At least it 
-                if iter%2:
-                    self.angle = initial_angle + (iter//2+1)*random.random()*2*np.pi
+                # At least it
+                if iter % 2:
+                    self.angle = (
+                        initial_angle + (iter // 2 + 1) * random.random() * 2 * np.pi
+                    )
                 else:
-                    self.angle = initial_angle - (iter//2+1)*random.random()*2*np.pi
+                    self.angle = (
+                        initial_angle - (iter // 2 + 1) * random.random() * 2 * np.pi
+                    )
 
                 crash = self.will_crash(obstacles)
                 iter += 1
@@ -193,22 +220,22 @@ class Ant(Agent):
             #             # The ant is aware of markers and saw one
 
             #         next_x, next_y, next_angle, marker_reached = self.go_to(nearest_food_marker)
-            
+
             # else:
-                # next_x, next_y, next_angle = self.go_back_to_colony()
-                # if len(self.model.markers_dict[str(self.colony.id_colony)]) < MAX_MARKERS:
-                #     food_marker = Marker(
-                #         x=self.x,
-                #         y=self.y,
-                #         colony_id=self.colony.id_colony,
-                #         purpose=MarkerPurpose.FOOD,
-                #         direction=next_angle,
-                #         color=self.colony.markers_colors[0],
-                #     )
-                #     self.model.markers_dict[str(self.colony.id_colony)].append(food_marker)
-                #     self.ignore_markers_counts += self.ignore_steps_after_marker
+            # next_x, next_y, next_angle = self.go_back_to_colony()
+            # if len(self.model.markers_dict[str(self.colony.id_colony)]) < MAX_MARKERS:
+            #     food_marker = Marker(
+            #         x=self.x,
+            #         y=self.y,
+            #         colony_id=self.colony.id_colony,
+            #         purpose=MarkerPurpose.FOOD,
+            #         direction=next_angle,
+            #         color=self.colony.markers_colors[0],
+            #     )
+            #     self.model.markers_dict[str(self.colony.id_colony)].append(food_marker)
+            #     self.ignore_markers_counts += self.ignore_steps_after_marker
             next_x, next_y, next_angle = self.go_back_to_colony()
-            
+
             if len(self.model.markers_dict[str(self.colony.id_colony)]) < MAX_MARKERS:
                 food_marker = Marker(
                     x=self.x,
@@ -224,22 +251,29 @@ class Ant(Agent):
         else:
             # The ant is looking for either food or markers
 
-            if (nearest_food := self.look_for_food()) is not None and random.random() < self.epsilon:
+            if (
+                nearest_food := self.look_for_food()
+            ) is not None and random.random() < self.epsilon:
                 # The ant saw some food and eager
 
                 next_x, next_y, next_angle, food_reached = self.go_to(nearest_food)
 
                 # The ant can already leave a food marker
-                if len(self.model.markers_dict[str(self.colony.id_colony)]) < MAX_MARKERS:
+                if (
+                    len(self.model.markers_dict[str(self.colony.id_colony)])
+                    < MAX_MARKERS
+                ):
                     food_marker = Marker(
                         x=self.x,
                         y=self.y,
                         colony_id=self.colony.id_colony,
                         purpose=MarkerPurpose.FOOD,
                         direction=next_angle,
-                        color=self.colony.markers_colors[self.colony.id_colony][0]
+                        color=self.colony.markers_colors[self.colony.id_colony][0],
                     )
-                    self.model.markers_dict[str(self.colony.id_colony)].append(food_marker)
+                    self.model.markers_dict[str(self.colony.id_colony)].append(
+                        food_marker
+                    )
                     self.ignore_markers_counts += self.ignore_steps_after_marker
 
                 if food_reached:
@@ -250,12 +284,17 @@ class Ant(Agent):
 
             else:
                 # The ant did not see any food
-                
-                if self.ignore_markers_counts == 0 and \
-                    (nearest_food_marker := self.look_for_food_marker()) is not None and random.random() < self.epsilon:
+
+                if (
+                    self.ignore_markers_counts == 0
+                    and (nearest_food_marker := self.look_for_food_marker()) is not None
+                    and random.random() < self.epsilon
+                ):
                     # The ant is aware of markers and saw one
 
-                    next_x, next_y, next_angle, marker_reached = self.go_to(nearest_food_marker)
+                    next_x, next_y, next_angle, marker_reached = self.go_to(
+                        nearest_food_marker
+                    )
 
                     if marker_reached:
                         self.is_on_food_marker = True
@@ -264,7 +303,7 @@ class Ant(Agent):
                     # The ant did not see any food nor markers, it explores the environement
 
                     next_x, next_y = self.next_pos()
-                    next_angle = np.pi * (random.random()*2-1)
+                    next_angle = np.pi * (random.random() * 2 - 1)
 
         # Update ant states
         self.x, self.y, self.angle = next_x, next_y, next_angle
@@ -276,46 +315,62 @@ class Ant(Agent):
             "Filled": "true",
             "Color": self.color,
             "Layer": 3,
-            "r": 3
+            "r": 3,
         }
         return portrayal
 
+
 class Warrior(Ant):
     def __init__(
-        self, 
-        unique_id: int, 
-        model: Model, 
-        x: float, 
-        y: float, 
-        speed: float, 
-        angle: float, 
-        sight_distance: float, 
-        colony, 
+        self,
+        unique_id: int,
+        model: Model,
+        x: float,
+        y: float,
+        speed: float,
+        angle: float,
+        sight_distance: float,
+        colony,
         color: str,
-        lifespan: int, 
-        proba_cgt_angle=PROBA_CHGT_ANGLE, 
-        ignore_steps_after_marker=2):
-        
-        super().__init__(unique_id, model, x, y, speed, angle, sight_distance, colony, color, proba_cgt_angle, ignore_steps_after_marker)
+        lifespan: int,
+        proba_cgt_angle=PROBA_CHGT_ANGLE,
+        ignore_steps_after_marker=2,
+    ):
+
+        super().__init__(
+            unique_id,
+            model,
+            x,
+            y,
+            speed,
+            angle,
+            sight_distance,
+            colony,
+            color,
+            proba_cgt_angle,
+            ignore_steps_after_marker,
+        )
         self.lifespan = lifespan
- 
+
     def next_pos(self) -> Tuple:
         return super().next_pos()
-    
+
     def go_to(self, destination) -> Tuple:
         return super().go_to(destination)
-    
+
     def go_back_to_colony(self) -> Tuple:
         return super().go_back_to_colony()
-    
+
     def will_crash(self, objects):
         return super().will_crash(objects)
-    
+
     def look_for_ant(self):
         if ants_at_sight := [
             ant
             for ant in self.model.schedule.agents
-            if isinstance(ant, (Ant, Warrior)) and ant.colony.id_colony != self.colony.id_colony and euclidean(self, ant) < self.sight_distance
+            if isinstance(ant, (Ant, Warrior))
+            and ant.colony.id_colony != self.colony.id_colony
+            and euclidean(self, ant) < self.sight_distance
         ]:
             nearest_ant = ants_at_sight[
                 np.argmin([euclidean(self, ant) for ant in ants_at_sight])
@@ -324,22 +379,29 @@ class Warrior(Ant):
             return nearest_ant
 
     def step(self):
-        obstacles = [obstacle for obstacle in self.model.obstacles
-                        if euclidean(self, obstacle)<self.sight_distance]
+        obstacles = [
+            obstacle
+            for obstacle in self.model.obstacles
+            if euclidean(self, obstacle) < self.sight_distance
+        ]
 
         crash = self.model.space.out_of_bounds(self.next_pos())
         if not crash:
             crash = self.will_crash(obstacles)
-        
+
         iter = 0
         initial_angle = self.angle
-        while crash and iter<MAX_ITERATIONS:
+        while crash and iter < MAX_ITERATIONS:
             # ---- Priority X.X ----
             # We try to avoid a crash with any obstacle
-            if iter%2:
-                self.angle = initial_angle + (iter//2+1)*random.random()*2*np.pi
+            if iter % 2:
+                self.angle = (
+                    initial_angle + (iter // 2 + 1) * random.random() * 2 * np.pi
+                )
             else:
-                self.angle = initial_angle - (iter//2+1)*random.random()*2*np.pi
+                self.angle = (
+                    initial_angle - (iter // 2 + 1) * random.random() * 2 * np.pi
+                )
 
             crash = self.model.space.out_of_bounds(self.next_pos())
             if not crash:
@@ -352,50 +414,61 @@ class Warrior(Ant):
             self.angle = initial_angle
 
         next_x, next_y, next_angle = *self.next_pos(), self.angle
-        
+
         if (nearest_ant := self.look_for_ant()) is not None:
             next_x, next_y, next_angle, reached = self.go_to(nearest_ant)
 
             if reached:
-                if len(self.model.markers_dict[str(nearest_ant.colony.id_colony)]) < MAX_MARKERS:
+                if (
+                    len(self.model.markers_dict[str(nearest_ant.colony.id_colony)])
+                    < MAX_MARKERS
+                ):
                     danger_marker = Marker(
                         x=nearest_ant.x,
                         y=nearest_ant.y,
                         colony_id=nearest_ant.colony.id_colony,
                         purpose=MarkerPurpose.DANGER,
                         direction=nearest_ant.angle,
-                        color=nearest_ant.colony.markers_colors[nearest_ant.colony.id_colony][1]
+                        color=nearest_ant.colony.markers_colors[
+                            nearest_ant.colony.id_colony
+                        ][1],
                     )
-                    self.model.markers_dict[str(nearest_ant.colony.id_colony)].append(danger_marker)
+                    self.model.markers_dict[str(nearest_ant.colony.id_colony)].append(
+                        danger_marker
+                    )
                     self.ignore_markers_counts += self.ignore_steps_after_marker
-                
+
                 if not isinstance(nearest_ant, Warrior):
                     # If the warrior ant is near a basic ant it will just kill it while the ant will reduce its lifespan
                     self.model.schedule.remove(nearest_ant)
-                    self.model.colonies[nearest_ant.colony.id_colony].ants.remove(nearest_ant)
-                    self.lifespan -= 1 # It takes two ants to destroy a warrior
-                    
+                    self.model.colonies[nearest_ant.colony.id_colony].ants.remove(
+                        nearest_ant
+                    )
+                    self.lifespan -= 1  # It takes two ants to destroy a warrior
+
                     # The warrior will go back to its colony to protect its fellow ants like a shield
                     self.go_back_to_colony()
-                else:    
+                else:
                     # Besides, if it is next to warrior which is an opponent, they destroy each other
                     self.model.schedule.remove(nearest_ant)
-                    self.model.colonies[nearest_ant.colony.id_colony].warriors.remove(nearest_ant)
+                    self.model.colonies[nearest_ant.colony.id_colony].warriors.remove(
+                        nearest_ant
+                    )
                     self.model.schedule.remove(self)
                     self.model.colonies[self.colony.id_colony].warriors.remove(self)
 
         else:
             next_x, next_y = self.next_pos()
-            next_angle = np.pi * (random.random()*2-1)
-            
+            next_angle = np.pi * (random.random() * 2 - 1)
+
         self.x, self.y, self.angle = next_x, next_y, next_angle
-       
+
     def portrayal_method(self):
         portrayal = {
             "Shape": "circle",
             "Filled": "true",
             "Color": self.color,
             "Layer": 3,
-            "r": 5
+            "r": 5,
         }
         return portrayal
