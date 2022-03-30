@@ -73,13 +73,13 @@ def run_batch():
         model_cls = Ground,
         variable_parameters={
             "n_colonies": (2,),
-            "n_ants": ((10, 10),),
-            "n_warriors": ((1, 2),),
+            "n_ants": ((10,10),),
+            "n_warriors": tuple((i,0) for i in range(10)),
             "n_foods": (3,),
             "n_obstacles": (5,),
             "color_food": ("#EAEA08",),
             "epsilons": ((.5, .5),),
-            "speed": (15,),
+            "speed": (20,),
             "allow_danger_markers": (True,),
             "allow_info_markers": (True,)
         },
@@ -100,10 +100,17 @@ if __name__ == "__main__":
         type=int,
         help="if 0 runs notebook in singular server mode, else runs notebook in batch mode (default: 0)",
     )
+    parser.add_argument(
+        "-n",
+        "--name",
+        default="exp.csv",
+        type=str,
+        help="name of the result dataframe"
+    )
     args = parser.parse_args()
 
     if args.run_batch:
         df = run_batch()
-        df.to_csv("./exp.csv")
+        df.to_csv(args.name)
     else:
         run_single_server()
