@@ -14,7 +14,8 @@ MIN_STOCK = 10
 MAX_STOCK = 100
 WIDTH = 500
 HEIGHT = 500
-SIGHT_DISTANCE = 50
+SIGHT_DISTANCE_A = 50
+SIGHT_DISTANCE_W = 10
 LIFESPAN = 10
 class Obstacle:
     def __init__(self, x, y, r):
@@ -92,7 +93,6 @@ class Ground(Model):
         markers_colors,
         epsilons,
         speed,
-        sight_distance=SIGHT_DISTANCE,
         allow_info_markers=True,
         allow_danger_markers=True,
     ):
@@ -143,7 +143,7 @@ class Ground(Model):
                     speed=speed,
                     colony=colony,
                     angle=(random.random()*2-1) * np.pi,
-                    sight_distance=sight_distance,
+                    sight_distance=SIGHT_DISTANCE_A,
                     color=colony.color_colony,
                     epsilon=colony.epsilon
                 )
@@ -151,28 +151,26 @@ class Ground(Model):
                 print(ant)
                 colony.ants.append(ant)
             
-            # for _ in range(n_warriors[id_colony]):
-            #     warrior = Warrior(
-            #         unique_id=int(uuid.uuid1()),
-            #         model=self,
-            #         x=x + np.cos(random.random()*2*np.pi) * colony.r,
-            #         y=y + np.sin(random.random()*2*np.pi) * colony.r,
-            #         speed=speed,
-            #         colony=colony,
-            #         angle=(random.random()*2-1) * np.pi,
-            #         sight_distance=sight_distance,
-            #         color=color_colonies[id_colony],
-            #         lifespan=LIFESPAN
-            #     )
-            #     self.schedule.add(warrior)
-            #     colony.warriors.append(warrior)
+            for _ in range(n_warriors[id_colony]):
+                warrior = Warrior(
+                    unique_id=int(uuid.uuid1()),
+                    model=self,
+                    x=x + np.cos(random.random()*2*np.pi) * colony.r,
+                    y=y + np.sin(random.random()*2*np.pi) * colony.r,
+                    speed=speed,
+                    colony=colony,
+                    angle=(random.random()*2-1) * np.pi,
+                    sight_distance=SIGHT_DISTANCE_W,
+                    color=color_colonies[id_colony],
+                    lifespan=LIFESPAN
+                )
+                self.schedule.add(warrior)
+                colony.warriors.append(warrior)
                 
             self.colonies.append(colony)
         
         model_reporters={}
-        #     "Foods Picked": lambda model: model.colonies[0].food_picked,
-        #     "Ants": lambda model: model.
-        #     "Foods Picked": lambda model: len(model.foods),
+       
         #     "Danger markers 0": lambda model: len(
         #         [m for m in model.markers_dict['0'] if m.purpose == MarkerPurpose.DANGER]
         #     ),

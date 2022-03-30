@@ -128,7 +128,7 @@ def run_single_server():
         colonies_colors.append("#"+''.join(random.choices('0123456789ABCDEF', k=6)))
         markers_colors.append(["#"+''.join(random.choices('0123456789ABCDEF', k=6)),
                               "#"+''.join(random.choices('0123456789ABCDEF', k=6))]) # element 0 for purpose FOOD and element 1 for DANGER
-        #series.append({"Label": "Ants " + str(i), "Color": colonies_colors[i]})
+        series.append({"Label": "Ants " + str(i), "Color": markers_colors[i][0]})
         series.append({"Label": "Food picked " + str(i), "Color": colonies_colors[i]})
               
     chart = ChartModule(

@@ -6,7 +6,6 @@ from space import Point, euclidean, move
 from marker import Marker, MarkerPurpose
 
 PROBA_CHGT_ANGLE = 0.3
-EPS = 0.5
 MAX_MARKERS = np.inf
 MAX_ITERATIONS = 100
 
@@ -225,7 +224,7 @@ class Ant(Agent):
         else:
             # The ant is looking for either food or markers
 
-            if (nearest_food := self.look_for_food()) is not None and random.random() < EPS:
+            if (nearest_food := self.look_for_food()) is not None and random.random() < self.epsilon:
                 # The ant saw some food and eager
 
                 next_x, next_y, next_angle, food_reached = self.go_to(nearest_food)
@@ -253,7 +252,7 @@ class Ant(Agent):
                 # The ant did not see any food
                 
                 if self.ignore_markers_counts == 0 and \
-                    (nearest_food_marker := self.look_for_food_marker()) is not None and random.random() < EPS:
+                    (nearest_food_marker := self.look_for_food_marker()) is not None and random.random() < self.epsilon:
                     # The ant is aware of markers and saw one
 
                     next_x, next_y, next_angle, marker_reached = self.go_to(nearest_food_marker)
@@ -264,7 +263,7 @@ class Ant(Agent):
                 else:
                     # The ant did not see any food nor markers, it explores the environement
 
-                    next_x, next_y = move(self.x, self.y, self.speed, self.angle)
+                    next_x, next_y = self.next_pos()
                     next_angle = np.pi * (random.random()*2-1)
 
         # Update ant states
@@ -314,12 +313,6 @@ class Warrior(Ant):
     def go_back_to_colony(self) -> Tuple:
         return super().go_back_to_colony()
     
-    def will_crash_with(self, object):
-        return super().will_crash_with(object)
-    
-    def will_crash(self, objects):
-        return super().will_crash(objects)
-    
     def look_for_ant(self):
         if ants_at_sight := [
             ant
@@ -333,7 +326,20 @@ class Warrior(Ant):
             return nearest_ant
 
     def step(self):
-        self.look_for_ant()
+        if (nearest_ant := self.look_for_ant()) is not None:
+            next_x, next_y, next_angle, reached = self.go_to(nearest_ant)
+
+            if reached:
+                self.model.schedule.agents.remove(nearest_ant)
+                #nearest_ant.colony.ants.remove(nearest_ant)
+                self.lifespan -= 1
+                self.go_back_to_colony()
+
+        else:
+            next_x, next_y = self.next_pos()
+            next_angle = np.pi * (random.random()*2-1)
+            
+        self.x, self.y, self.angle = next_x, next_y, next_angle
        
     def portrayal_method(self):
         portrayal = {
