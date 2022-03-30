@@ -56,11 +56,12 @@ class Food:
 
 
 class Colony:
-    def __init__(self, x, y, r, ants, color_colony, id_colony, markers_colors, epsilon):
+    def __init__(self, x, y, r, color_colony, id_colony, markers_colors, epsilon):
         self.x = x
         self.y = y
         self.r = r
-        self.ants = ants
+        self.ants = []
+        self.warriors = []
         self.food_picked = 0
         self.color_colony = color_colony
         self.id_colony = id_colony
@@ -84,28 +85,27 @@ class Ground(Model):
         n_colonies,
         n_ants,
         n_warriors,
-        color_colonies,
-        color_food,
         n_obstacles,
         n_foods,
+        color_food,
+        color_colonies,
         markers_colors,
-        speed,
         epsilons,
+        speed,
+        sight_distance=SIGHT_DISTANCE,
         allow_info_markers=True,
         allow_danger_markers=True,
-        sight_distance=SIGHT_DISTANCE,
     ):
         Model.__init__(self)
         self.space = ContinuousSpace(WIDTH, HEIGHT, False)
         self.schedule = RandomActivation(self)
 
         # These following parameters will serve as getters for class Ant which represents the agents of our simulation
-        self.markers_dict = {str(id): [] for id in range(n_colonies)}
         self.obstacles = []     
         self.colonies = []
         self.foods = []
-        self.color_colonies = color_colonies
         self.color_food = color_food
+        self.markers_dict = {str(id): [] for id in range(n_colonies)}
 
         for _ in range(n_obstacles):
             self.obstacles.append(
@@ -132,7 +132,7 @@ class Ground(Model):
             or [f for f in self.foods if np.linalg.norm((f.x - x, f.y - y)) <= f.stock + r] \
             or [c for c in self.colonies if np.linalg.norm((c.x - x, c.y - y)) <= c.r + r]:
                 x, y = random.random() * WIDTH, random.random() * HEIGHT
-            colony = Colony(x, y, r, [], color_colony=self.color_colonies[id_colony], id_colony=id_colony, markers_colors=markers_colors, epsilon=epsilons[id_colony])
+            colony = Colony(x, y, r, color_colony=color_colonies[id_colony], id_colony=id_colony, markers_colors=markers_colors, epsilon=epsilons[id_colony])
 
             for _ in range(n_ants[id_colony]):
                 ant = Ant(
@@ -144,27 +144,28 @@ class Ground(Model):
                     colony=colony,
                     angle=(random.random()*2-1) * np.pi,
                     sight_distance=sight_distance,
-                    color=self.color_colonies[id_colony],
+                    color=colony.color_colony,
                     epsilon=colony.epsilon
                 )
                 self.schedule.add(ant)
+                print(ant)
                 colony.ants.append(ant)
             
-            for _ in range(n_warriors[id_colony]):
-                ant = Warrior(
-                    unique_id=int(uuid.uuid1()),
-                    model=self,
-                    x=x + np.cos(random.random()*2*np.pi) * colony.r,
-                    y=y + np.sin(random.random()*2*np.pi) * colony.r,
-                    speed=speed,
-                    colony=colony,
-                    angle=(random.random()*2-1) * np.pi,
-                    sight_distance=sight_distance,
-                    color=self.color_colonies[id_colony],
-                    lifespan=
-                )
-                self.schedule.add(ant)
-                colony.ants.append(ant)
+            # for _ in range(n_warriors[id_colony]):
+            #     warrior = Warrior(
+            #         unique_id=int(uuid.uuid1()),
+            #         model=self,
+            #         x=x + np.cos(random.random()*2*np.pi) * colony.r,
+            #         y=y + np.sin(random.random()*2*np.pi) * colony.r,
+            #         speed=speed,
+            #         colony=colony,
+            #         angle=(random.random()*2-1) * np.pi,
+            #         sight_distance=sight_distance,
+            #         color=color_colonies[id_colony],
+            #         lifespan=LIFESPAN
+            #     )
+            #     self.schedule.add(warrior)
+            #     colony.warriors.append(warrior)
                 
             self.colonies.append(colony)
         

@@ -301,8 +301,8 @@ class Warrior(Ant):
         lifespan: int, 
         proba_cgt_angle=PROBA_CHGT_ANGLE, 
         ignore_steps_after_marker=2):
-        super().__init__(unique_id, model, x, y, speed, angle, sight_distance, colony, color, proba_cgt_angle, ignore_steps_after_marker)
         
+        super().__init__(unique_id, model, x, y, speed, angle, sight_distance, colony, color, proba_cgt_angle, ignore_steps_after_marker)
         self.lifespan = lifespan
  
     def next_pos(self) -> Tuple:
@@ -324,17 +324,16 @@ class Warrior(Ant):
         if ants_at_sight := [
             ant
             for ant in self.model.schedule.agents
-            if ant.colony_id != euclidean(self, food) < self.sight_distance
+            if ant.colony != self.colony and euclidean(self, ant) < self.sight_distance
         ]:
-            nearest_food = foods_at_sight[
-                np.argmin([euclidean(self, food) for food in foods_at_sight])
+            nearest_ant = ants_at_sight[
+                np.argmin([euclidean(self, ant) for ant in ants_at_sight])
             ]
 
-            return nearest_food
+            return nearest_ant
 
     def step(self):
-        
-        return super().step()
+        self.look_for_ant()
        
     def portrayal_method(self):
         portrayal = {

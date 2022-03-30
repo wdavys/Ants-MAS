@@ -140,15 +140,15 @@ def run_single_server():
         "n_colonies": n_colonies,
         "n_ants": n_ants,
         "n_warriors": n_warriors,
-        "epsilons": epsilons,
-        "color_colonies": colonies_colors,
-        "color_food": ["#EAEA08"],
         "n_foods": mesa.visualization.ModularVisualization.UserSettableParameter(
             "slider", "Number of foods", 3, 1, 5, 1
         ),
         "n_obstacles": mesa.visualization.ModularVisualization.UserSettableParameter(
             "slider", "Number of obstacles", 5, 2, 10, 1
         ),
+        "color_food": ["#EAEA08"],
+        "color_colonies": colonies_colors,
+        "epsilons": epsilons,
         "markers_colors": markers_colors,
         "speed": mesa.visualization.ModularVisualization.UserSettableParameter(
             "slider", "Ant speed", 15, 5, 40, 5
